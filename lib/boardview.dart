@@ -177,21 +177,6 @@ class BoardViewState extends State<BoardView>
       draggedListIndex++;
       widget.lists.insert(draggedListIndex, list);
       listStates.insert(draggedListIndex, listState);
-      canDrag = false;
-      if (boardViewController != null && boardViewController.hasClients) {
-        int tempListIndex = draggedListIndex;
-        boardViewController
-            .animateTo(draggedListIndex * widget.width,
-                duration: new Duration(milliseconds: 400), curve: Curves.ease)
-            .whenComplete(() {
-          RenderBox object =
-              listStates[tempListIndex].context.findRenderObject();
-          Offset pos = object.localToGlobal(Offset.zero);
-          Future.delayed(new Duration(milliseconds: 300), () {
-            canDrag = true;
-          });
-        });
-      }
     });
   }
 
@@ -240,21 +225,6 @@ class BoardViewState extends State<BoardView>
       draggedListIndex--;
       widget.lists.insert(draggedListIndex, list);
       listStates.insert(draggedListIndex, listState);
-      canDrag = false;
-      if (boardViewController != null && boardViewController.hasClients) {
-        int tempListIndex = draggedListIndex;
-        boardViewController
-            .animateTo(draggedListIndex * widget.width,
-                duration: new Duration(milliseconds: 400), curve: Curves.ease)
-            .whenComplete(() {
-          RenderBox object =
-              listStates[tempListIndex].context.findRenderObject();
-          Offset pos = object.localToGlobal(Offset.zero);
-          Future.delayed(new Duration(milliseconds: 300), () {
-            canDrag = true;
-          });
-        });
-      }
     });
   }
 
@@ -472,8 +442,8 @@ class BoardViewState extends State<BoardView>
         draggedItem != null) {
       handleItemScroll(dx, dy);
       handleItemReorder(dx, dy);
-    } else {
-      //handleListDrag(dx, dy);
+    } else if(draggedListIndex != null){
+      handleListDrag(dx, dy);
     }
     setState(() {
       this.dx = dx;
@@ -482,38 +452,33 @@ class BoardViewState extends State<BoardView>
   }
 
   void handleListDrag(double dx, double dy) {
-//    //dragging list
-//    if (0 <= draggedListIndex - 1 && dx < leftListX + 45) {
-//      //scroll left
-//      if (boardViewController != null && boardViewController.hasClients) {
-//        boardViewController.animateTo(boardViewController.position.pixels - 5,
-//            duration: new Duration(milliseconds: 10), curve: Curves.ease);
-//        leftListX += 5;
-//        rightListX += 5;
-//      }
-//    }
-//
-//    // scroll right
-//    if (widget.lists.length > draggedListIndex + 1 && dx > rightListX - 45) {
-//
-//      if (boardViewController != null && boardViewController.hasClients) {
-//        boardViewController.animateTo(boardViewController.position.pixels + 5,
-//            duration: new Duration(milliseconds: 10), curve: Curves.ease);
-//        leftListX -= 5;
-//        rightListX -= 5;
-//      }
-//    }
-//    if (widget.lists.length > draggedListIndex + 1 && dx > rightListX) {
-//      //move right
-//      moveListRight();
-//    }
-//    if (0 <= draggedListIndex - 1 && dx < leftListX) {
-//      //move left
-//      moveListLeft();
-//    }
+    // TODO why offset here but not for items?
+
+    // Scroll left
+    if (0 <= draggedListIndex - 1 && dx < listStates[draggedListIndex - 1].right + 45) {
+      if (boardViewController != null && boardViewController.hasClients && !boardViewController.position.isScrollingNotifier.value && !horizontalLocked) {
+        boardViewController.animateToPage(draggedListIndex - 1, duration: Duration(milliseconds: 400), curve: Curves.ease);
+        moveListLeft();
+        if(draggedListIndex != 0)
+          startTimedHorizontalLock();
+      }
+    }
+    // Scroll right
+    else if (draggedListIndex + 1 < widget.lists.length && dx > listStates[draggedListIndex + 1].left - 45) {
+      if (boardViewController != null && boardViewController.hasClients && !boardViewController.position.isScrollingNotifier.value && !horizontalLocked) {
+        boardViewController.animateToPage(draggedListIndex + 1, duration: Duration(milliseconds: 400), curve: Curves.ease);
+        moveListRight();
+        startTimedHorizontalLock();
+      }
+    }
+    else {
+      horizontalLocked = false;
+    }
   }
 
   void handleItemScroll(double dx, double dy) {
+    if(draggedItem == null || draggedItemIndex == null) return;
+
     /*
      * Handle vertical scrolling within a [BoardList].
      * If the hovering item is near the top or bottom of a list,
@@ -590,15 +555,18 @@ class BoardViewState extends State<BoardView>
   }
 
   void startTimedHorizontalLock() {
+    horizontalLocked = true;
     recurringHorizontalTimer?.cancel();
     recurringHorizontalTimer = new Timer(Duration(milliseconds: 1000), () {
+      print("completed!");
       horizontalLocked = false;
       handleItemScroll(dx, dy);
+      handleListDrag(dx, dy);
     });
   }
 
   void handleItemReorder(double dx, double dy) {
-    if(draggedItem == null || draggedListIndex == null) return;
+    if(draggedItem == null || draggedListIndex == null || draggedItemIndex == null) return;
 
     /*
      * Check if the item should be repositioned

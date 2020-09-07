@@ -49,12 +49,20 @@ class BoardListState extends State<BoardList> {
   ScrollController boardListController = new ScrollController();
 
   double get left {
+    if(context == null) {
+      return double.infinity;
+    }
+
     RenderBox renderBox = context.findRenderObject();
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dx;
   }
   
   double get right {
+    if(context == null) {
+      return double.negativeInfinity;
+    }
+
     RenderBox renderBox = context.findRenderObject();
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dx + renderBox.size.width;
@@ -70,6 +78,10 @@ class BoardListState extends State<BoardList> {
     RenderBox renderBox = context.findRenderObject();
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dy + renderBox.size.height;
+  }
+  
+  double get middleHorizontal {
+    return (left + right) / 2;
   }
   
   void onDropList(int listIndex) {
