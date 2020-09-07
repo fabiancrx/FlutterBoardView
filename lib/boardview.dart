@@ -423,6 +423,7 @@ class BoardViewState extends State<BoardView>
               });
             },
             child: new Stack(
+              clipBehavior: Clip.none,
               children: stackWidgets,
             )));
   }
@@ -558,7 +559,6 @@ class BoardViewState extends State<BoardView>
     horizontalLocked = true;
     recurringHorizontalTimer?.cancel();
     recurringHorizontalTimer = new Timer(Duration(milliseconds: 1000), () {
-      print("completed!");
       horizontalLocked = false;
       handleItemScroll(dx, dy);
       handleListDrag(dx, dy);
