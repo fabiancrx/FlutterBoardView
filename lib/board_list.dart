@@ -48,6 +48,30 @@ class BoardListState extends State<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController = new ScrollController();
 
+  double get left {
+    RenderBox renderBox = context.findRenderObject();
+    Offset offset = renderBox.localToGlobal(Offset.zero);
+    return offset.dx;
+  }
+  
+  double get right {
+    RenderBox renderBox = context.findRenderObject();
+    Offset offset = renderBox.localToGlobal(Offset.zero);
+    return offset.dx + renderBox.size.width;
+  }
+  
+  double get top {
+    RenderBox renderBox = context.findRenderObject();
+    Offset offset = renderBox.localToGlobal(Offset.zero);
+    return offset.dy;
+  }
+  
+  double get bottom {
+    RenderBox renderBox = context.findRenderObject();
+    Offset offset = renderBox.localToGlobal(Offset.zero);
+    return offset.dy + renderBox.size.height;
+  }
+  
   void onDropList(int listIndex) {
     widget.boardView.setState(() {
       if (widget.onDropList != null) {
@@ -146,9 +170,6 @@ class BoardListState extends State<BoardList> {
                 Offset pos = object.localToGlobal(Offset.zero);
                 widget.boardView.initialX = pos.dx;
                 widget.boardView.initialY = pos.dy;
-
-                widget.boardView.rightListX = pos.dx + object.size.width;
-                widget.boardView.leftListX = pos.dx;
               }
             },
             onTapCancel: () {},

@@ -38,9 +38,10 @@ class BoardItem extends StatefulWidget {
 }
 
 class BoardItemState extends State<BoardItem> {
-  double height;
-  double width;
-  RenderBox renderBox;
+
+  RenderBox get renderBox {
+    return context.findRenderObject();
+  }
 
   void onDropItem(int listIndex, int itemIndex) {
     widget.boardList.widget.boardView.listStates[listIndex].setState(() {
@@ -74,16 +75,8 @@ class BoardItemState extends State<BoardItem> {
     }
   }
 
-  void afterFirstLayout(BuildContext context) {
-    height = context.size.height;
-    width = context.size.width;
-    renderBox = context.findRenderObject();
-  }
-
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => afterFirstLayout(context));
     if (widget.boardList.itemStates.length > widget.index) {
       widget.boardList.itemStates.removeAt(widget.index);
     }
@@ -95,15 +88,6 @@ class BoardItemState extends State<BoardItem> {
           Offset pos = object.localToGlobal(Offset.zero);
           RenderBox box = widget.boardList.context.findRenderObject();
           Offset listPos = box.localToGlobal(Offset.zero);
-          widget.boardList.widget.boardView.leftListX = listPos.dx;
-          widget.boardList.widget.boardView.topListY = listPos.dy;
-          widget.boardList.widget.boardView.topItemY = pos.dy;
-          widget.boardList.widget.boardView.bottomItemY =
-              pos.dy + object.size.height;
-          widget.boardList.widget.boardView.bottomListY =
-              listPos.dy + box.size.height;
-          widget.boardList.widget.boardView.rightListX =
-              listPos.dx + box.size.width;
 
           widget.boardList.widget.boardView.initialX = pos.dx;
           widget.boardList.widget.boardView.initialY = pos.dy;
