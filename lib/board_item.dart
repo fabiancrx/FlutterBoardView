@@ -87,7 +87,7 @@ class BoardItemState extends State<BoardItem> {
     }
     widget.boardList.itemStates.insert(widget.index, this);
     return GestureDetector(
-      onTapDown: (otd) {
+      onTapDown: (_) {
         if(widget.draggable) {
           RenderBox object = context.findRenderObject();
           Offset pos = object.localToGlobal(Offset.zero);
