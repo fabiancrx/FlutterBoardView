@@ -40,6 +40,7 @@ class BoardItem extends StatefulWidget {
 class BoardItemState extends State<BoardItem> {
   double height;
   double width;
+  RenderBox renderBox;
 
   void onDropItem(int listIndex, int itemIndex) {
     widget.boardList.widget.boardView.listStates[listIndex].setState(() {
@@ -76,6 +77,7 @@ class BoardItemState extends State<BoardItem> {
   void afterFirstLayout(BuildContext context) {
     height = context.size.height;
     width = context.size.width;
+    renderBox = context.findRenderObject();
   }
 
   @override

@@ -54,7 +54,6 @@ class BoardViewState extends State<BoardView>
   int draggedItemIndex;
   int draggedListIndex;
 
-  MediaQueryData mediaQueryData;
   Offset offset;
 
   /// When a [BoardItem] is picked up, this is the local x offset from the
@@ -121,6 +120,7 @@ class BoardViewState extends State<BoardView>
   @override
   void dispose() {
     modeAnimationController.dispose();
+
     super.dispose();
   }
 
@@ -363,68 +363,77 @@ class BoardViewState extends State<BoardView>
     List<Widget> stackWidgets = <Widget>[
       FractionallySizedBox(
         heightFactor: modeAnimation.value,
-        child: PageView.builder(
-          itemCount: widget.lists.length,
-          scrollDirection: Axis.horizontal,
-          controller: boardViewController,
-          physics: DynamicPageScrollPhysics(),
-          pageSnapping: false,
-          itemBuilder: (BuildContext context, int index) {
-            if (widget.lists[index].boardView == null) {
-              widget.lists[index] = BoardList(
-                items: widget.lists[index].items,
-                headerBackgroundColor:
-                    widget.lists[index].headerBackgroundColor,
-                backgroundColor: widget.lists[index].backgroundColor,
-                footer: widget.lists[index].footer,
-                header: widget.lists[index].header,
-                boardView: this,
-                draggable: widget.lists[index].draggable,
-                onDropList: widget.lists[index].onDropList,
-                onTapList: widget.lists[index].onTapList,
-                onStartDragList: widget.lists[index].onStartDragList,
-                boardViewMode: boardViewMode,
-              );
-            }
-            if (widget.lists[index].index != index ||
-                widget.lists[index].boardViewMode != boardViewMode) {
-              widget.lists[index] = BoardList(
-                items: widget.lists[index].items,
-                headerBackgroundColor:
-                    widget.lists[index].headerBackgroundColor,
-                backgroundColor: widget.lists[index].backgroundColor,
-                footer: widget.lists[index].footer,
-                header: widget.lists[index].header,
-                boardView: this,
-                draggable: widget.lists[index].draggable,
-                index: index,
-                onDropList: widget.lists[index].onDropList,
-                onTapList: widget.lists[index].onTapList,
-                onStartDragList: widget.lists[index].onStartDragList,
-                boardViewMode: boardViewMode,
-              );
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if(notification is ScrollUpdateNotification) {
+                handleItemReorder(dx, dy);
             }
 
-            var temp = Container(
-                width: widget.width,
-                padding:
-                    EdgeInsets.fromLTRB(0, 0, 0, widget.bottomPadding ?? 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[Expanded(child: widget.lists[index])],
-                ));
-            // Draws an empty spot that the user is currently hovering
-            // a dragged item over
-            if (draggedListIndex == index && draggedItemIndex == null) {
-              return Opacity(
-                opacity: 0.0,
-                child: temp,
-              );
-            } else {
-              return temp;
-            }
+            return false;
           },
+          child: PageView.builder(
+            itemCount: widget.lists.length,
+            scrollDirection: Axis.horizontal,
+            controller: boardViewController,
+            physics: DynamicPageScrollPhysics(),
+            pageSnapping: false,
+            itemBuilder: (BuildContext context, int index) {
+              if (widget.lists[index].boardView == null) {
+                widget.lists[index] = BoardList(
+                  items: widget.lists[index].items,
+                  headerBackgroundColor:
+                      widget.lists[index].headerBackgroundColor,
+                  backgroundColor: widget.lists[index].backgroundColor,
+                  footer: widget.lists[index].footer,
+                  header: widget.lists[index].header,
+                  boardView: this,
+                  draggable: widget.lists[index].draggable,
+                  onDropList: widget.lists[index].onDropList,
+                  onTapList: widget.lists[index].onTapList,
+                  onStartDragList: widget.lists[index].onStartDragList,
+                  boardViewMode: boardViewMode,
+                );
+              }
+              if (widget.lists[index].index != index ||
+                  widget.lists[index].boardViewMode != boardViewMode) {
+                widget.lists[index] = BoardList(
+                  items: widget.lists[index].items,
+                  headerBackgroundColor:
+                      widget.lists[index].headerBackgroundColor,
+                  backgroundColor: widget.lists[index].backgroundColor,
+                  footer: widget.lists[index].footer,
+                  header: widget.lists[index].header,
+                  boardView: this,
+                  draggable: widget.lists[index].draggable,
+                  index: index,
+                  onDropList: widget.lists[index].onDropList,
+                  onTapList: widget.lists[index].onTapList,
+                  onStartDragList: widget.lists[index].onStartDragList,
+                  boardViewMode: boardViewMode,
+                );
+              }
+
+              var temp = Container(
+                  width: widget.width,
+                  padding:
+                      EdgeInsets.fromLTRB(0, 0, 0, widget.bottomPadding ?? 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[Expanded(child: widget.lists[index])],
+                  ));
+              // Draws an empty spot that the user is currently hovering
+              // a dragged item over
+              if (draggedListIndex == index && draggedItemIndex == null) {
+                return Opacity(
+                  opacity: 0.0,
+                  child: temp,
+                );
+              } else {
+                return temp;
+              }
+            },
+          ),
         ),
       )
     ];
@@ -463,7 +472,6 @@ class BoardViewState extends State<BoardView>
               RenderBox box = context.findRenderObject();
               offset = box.localToGlobal(opd.position);
               pointer = opd;
-              mediaQueryData = MediaQuery.of(context);
 
               handleDrag(opd.position.dx, opd.position.dy);
             },
@@ -541,7 +549,8 @@ class BoardViewState extends State<BoardView>
         draggedItem != null &&
         topItemY != null &&
         bottomItemY != null) {
-      handleItemDrag(dx, dy);
+      handleItemScroll(dx, dy);
+      handleItemReorder(dx, dy);
     } else {
       handleListDrag(dx, dy);
     }
@@ -582,7 +591,7 @@ class BoardViewState extends State<BoardView>
     }
   }
 
-  void handleItemDrag(double dx, double dy) {
+  void handleItemScroll(double dx, double dy) {
     /*
      * Handle vertical scrolling within a [BoardList].
      * If the hovering item is near the top or bottom of a list,
@@ -601,9 +610,8 @@ class BoardViewState extends State<BoardView>
         int duration = ((listStates[draggedListIndex]
                     .boardListController
                     .position
-                    .pixels) /
-                mediaQueryData.devicePixelRatio *
-                8)
+                    .pixels) *
+                4)
             .toInt();
 
         listStates[draggedListIndex].boardListController.animateTo(0,
@@ -621,9 +629,8 @@ class BoardViewState extends State<BoardView>
                     listStates[draggedListIndex]
                         .boardListController
                         .position
-                        .pixels) /
-                mediaQueryData.devicePixelRatio *
-                8)
+                        .pixels)  *
+                4)
             .toInt();
 
         listStates[draggedListIndex].boardListController.animateTo(
@@ -636,32 +643,6 @@ class BoardViewState extends State<BoardView>
       }
     } else if (isScrolling) {
       listStates[draggedListIndex].boardListController.position.hold((){});
-    }
-
-    /*
-     * Check if the item should be repositioned
-     */
-
-    if (0 <= draggedItemIndex - 1 &&
-        dy <
-            topItemY -
-                listStates[draggedListIndex]
-                        .itemStates[draggedItemIndex - 1]
-                        .height /
-                    2) {
-      //move up
-      moveUp();
-    }
-
-    if (draggedItemIndex + 1 < widget.lists[draggedListIndex].items.length &&
-        dy >
-            bottomItemY +
-                listStates[draggedListIndex]
-                        .itemStates[draggedItemIndex + 1]
-                        .height /
-                    2) {
-      //move down
-      moveDown();
     }
 
 //    if (0 <= draggedListIndex - 1 && dx < leftListX + 45) {
@@ -692,19 +673,49 @@ class BoardViewState extends State<BoardView>
 //      //move left
 //      moveLeft();
 //    }
+  }
+
+  void handleItemReorder(double dx, double dy) {
+    if(draggedItem == null) return;
+
+    /*
+     * Check if the item should be repositioned
+     */
+
+    //  Move up
+    // Compute if the pointer dy location is higher than the vertical
+    // midpoint of the immediately above adjacent item
+    if (draggedItemIndex - 1 >= 0 &&
+        dy <
+            listStates[draggedListIndex]
+                .itemStates[draggedItemIndex - 1].renderBox.localToGlobal(Offset.zero).dy +
+                listStates[draggedListIndex]
+                    .itemStates[draggedItemIndex - 1]
+                    .renderBox.size.height /
+                    2) {
+      moveUp();
+    }
+    // Move down
+    // Compute if the pointer dy location is lower than the vertical
+    // midpoint of the immediately below adjacent item
+    else if (draggedItemIndex + 1 < widget.lists[draggedListIndex].items.length &&
+        dy >
+            listStates[draggedListIndex]
+                .itemStates[draggedItemIndex + 1].renderBox.localToGlobal(Offset.zero).dy +
+                listStates[draggedListIndex]
+                    .itemStates[draggedItemIndex + 1]
+                    .renderBox.size.height /
+                    2) {
+      moveDown();
+    }
+
+    //    if (0 <= draggedListIndex - 1 && dx < leftListX) {
+//      //move left
+//      moveLeft();
+//    }
 //    if (widget.lists.length > draggedListIndex + 1 && dx > rightListX) {
 //      //move right
 //      moveRight();
-//    }
-//    if (widget.lists[draggedListIndex].items.length > draggedItemIndex + 1 &&
-//        dy >
-//            bottomItemY +
-//                listStates[draggedListIndex]
-//                        .itemStates[draggedItemIndex + 1]
-//                        .height /
-//                    2) {
-//      //move down
-//      moveDown();
 //    }
   }
 
