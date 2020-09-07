@@ -176,12 +176,19 @@ class BoardListState extends State<BoardList> {
                 widget.onTapList(widget.index);
               }
             },
-            onTapDown: (otd) {
+            onTapDown: (pointer) {
               if (widget.draggable) {
                 RenderBox object = context.findRenderObject();
                 Offset pos = object.localToGlobal(Offset.zero);
                 widget.boardView.initialX = pos.dx;
                 widget.boardView.initialY = pos.dy;
+                widget.boardView.width = object.size.width * 0.8;
+
+                // If the touch position would occur outside the right side (after width
+                // adjustment), adjust initial's by the difference
+                if(pointer.globalPosition.dx > pos.dx + object.size.width * 0.8) {
+                  widget.boardView.initialX += pointer.globalPosition.dx - (pos.dx + object.size.width * 0.7);
+                }
               }
             },
             onTapCancel: () {},

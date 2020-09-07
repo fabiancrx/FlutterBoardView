@@ -82,15 +82,21 @@ class BoardItemState extends State<BoardItem> {
     }
     widget.boardList.itemStates.insert(widget.index, this);
     return GestureDetector(
-      onTapDown: (_) {
+      onTapDown: (pointer) {
         if(widget.draggable) {
           RenderBox object = context.findRenderObject();
           Offset pos = object.localToGlobal(Offset.zero);
-          RenderBox box = widget.boardList.context.findRenderObject();
-          Offset listPos = box.localToGlobal(Offset.zero);
+
+          widget.boardList.widget.boardView.width = object.size.width * 0.8;
 
           widget.boardList.widget.boardView.initialX = pos.dx;
           widget.boardList.widget.boardView.initialY = pos.dy;
+
+          // If the touch position would occur outside the right side (after width
+          // adjustment), adjust initial's by the difference
+          if(pointer.globalPosition.dx > pos.dx + object.size.width * 0.8) {
+            widget.boardList.widget.boardView.initialX += pointer.globalPosition.dx - (pos.dx + object.size.width * 0.7);
+          }
         }
       },
       onTapCancel: () {},

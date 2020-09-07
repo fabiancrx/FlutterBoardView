@@ -2,6 +2,7 @@ library boardview;
 
 import 'dart:async';
 import 'dart:core';
+import 'dart:math';
 
 import 'package:boardview/board_list.dart';
 import 'package:boardview/boardview_controller.dart';
@@ -13,7 +14,6 @@ import 'boardview_page_controller.dart';
 
 class BoardView extends StatefulWidget {
   final List<BoardList> lists;
-  final double width;
   Widget middleWidget;
   double bottomPadding;
   bool isSelecting;
@@ -29,7 +29,6 @@ class BoardView extends StatefulWidget {
       this.onDropItemInMiddleWidget,
       this.isSelecting = false,
       this.lists,
-      this.width = 280,
       this.middleWidget,
       this.bottomPadding})
       : super(key: key);
@@ -68,6 +67,8 @@ class BoardViewState extends State<BoardView>
   /// The pointer's location relative to [BoardView] (local location)
   double dx;
   double dy;
+
+  double width;
 
   double height;
   int startListIndex;
@@ -320,7 +321,6 @@ class BoardViewState extends State<BoardView>
               }
 
               var temp = Container(
-                  width: widget.width,
                   padding:
                       EdgeInsets.fromLTRB(0, 0, 0, widget.bottomPadding ?? 0),
                   child: Row(
@@ -344,12 +344,12 @@ class BoardViewState extends State<BoardView>
       )
     ];
 
-    if (dx != null && dy != null && height != null && widget.width != null) {
+    if (dx != null && dy != null && height != null && width != null) {
       if (widget.middleWidget != null) {
         stackWidgets.add(widget.middleWidget);
       }
       stackWidgets.add(Positioned(
-        width: widget.width,
+        width: width,
         height: height,
         child: Opacity(opacity: .7, child: draggedItem),
         left: (dx - offset.dx) + initialX,
@@ -420,6 +420,7 @@ class BoardViewState extends State<BoardView>
                 startListIndex = null;
                 startItemIndex = null;
                 horizontalLocked = true;
+                width = null;
               });
             },
             child: new Stack(
@@ -434,7 +435,7 @@ class BoardViewState extends State<BoardView>
         dx == null ||
         dy == null ||
         height == null ||
-        widget.width == null ||
+        width == null ||
         !canDrag) {
       return;
     }

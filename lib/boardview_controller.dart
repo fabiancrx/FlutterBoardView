@@ -9,7 +9,8 @@ class BoardViewController {
   BoardViewState state;
 
   Future<void> animateTo(int index, {Duration duration, Curve curve}) async {
-    double offset = index * state.widget.width;
+    //double offset = index * state.widget.width;
+    double offset = 0;
     if (state.boardViewController != null &&
         state.boardViewController.hasClients) {
       await state.boardViewController
