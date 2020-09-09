@@ -8,9 +8,7 @@ import 'BoardItemObject.dart';
 import 'BoardListObject.dart';
 
 class BoardViewExample extends StatelessWidget {
-
-
-
+  
   List<BoardListObject> _listData = [
     BoardListObject(title: "List title 1"),
     BoardListObject(title: "List title 2"),
@@ -34,19 +32,19 @@ class BoardViewExample extends StatelessWidget {
 
   Widget buildBoardItem(BoardItemObject itemObject) {
     return BoardItem(
-        onStartDragItem: (int listIndex, int itemIndex, BoardItemState state) {
-
-        },
-        onDropItem: (int listIndex, int itemIndex, int oldListIndex,
-            int oldItemIndex, BoardItemState state) {
-          //Used to update our local item data
-          var item = _listData[oldListIndex].items[oldItemIndex];
-          _listData[oldListIndex].items.removeAt(oldItemIndex);
-          _listData[listIndex].items.insert(itemIndex, item);
-        },
-        onTapItem: (int listIndex, int itemIndex, BoardItemState state) async {
-
-        },
+        // onStartDragItem: (int listIndex, int itemIndex, BoardItemState state) {
+        //
+        // },
+        // onDropItem: (int listIndex, int itemIndex, int oldListIndex,
+        //     int oldItemIndex, BoardItemState state) {
+        //   //Used to update our local item data
+        //   var item = _listData[oldListIndex].items[oldItemIndex];
+        //   _listData[oldListIndex].items.removeAt(oldItemIndex);
+        //   _listData[listIndex].items.insert(itemIndex, item);
+        // },
+        // onTapItem: (int listIndex, int itemIndex, BoardItemState state) async {
+        //
+        // },
         item: Card(
           child: Padding(
             padding: const EdgeInsets.all(8.0),

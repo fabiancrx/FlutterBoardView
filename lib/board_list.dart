@@ -14,9 +14,6 @@ class BoardList extends StatefulWidget {
   final Color backgroundColor;
   final Color headerBackgroundColor;
   final BoardViewState boardView;
-  final OnDropList onDropList;
-  final OnTapList onTapList;
-  final OnStartDragList onStartDragList;
   final BoardViewMode boardViewMode;
 
   final Function(Rect bounds) onPreListDrag;
@@ -34,9 +31,6 @@ class BoardList extends StatefulWidget {
     this.headerBackgroundColor,
     this.boardView,
     this.index,
-    this.onDropList,
-    this.onTapList,
-    this.onStartDragList,
     this.boardViewMode,
     @required this.onPreListDrag,
     @required this.onListDrag,
@@ -92,27 +86,6 @@ class BoardListState extends State<BoardList> {
     return (left + right) / 2;
   }
 
-  void onDropList(int listIndex) {
-    widget.boardView.setState(() {
-      if (widget.onDropList != null) {
-        widget.onDropList(listIndex, widget.boardView.startListIndex);
-      }
-      widget.boardView.draggedListIndex = null;
-    });
-  }
-
-  // void _startDrag(Widget item, BuildContext context) {
-  //   if (widget.boardView != null) {
-  //     widget.boardView.setState(() {
-  //       widget.boardView.startListIndex = widget.index;
-  //       widget.boardView.draggedListIndex = widget.index;
-  //       widget.boardView.draggedItemIndex = null;
-  //       widget.boardView.draggedItem = item;
-  //       widget.boardView.run();
-  //     });
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     List<Widget> listWidgets = new List<Widget>();
@@ -134,7 +107,7 @@ class BoardListState extends State<BoardList> {
         itemCount: widget.items.length,
         itemBuilder: (ctx, index) {
           var item = BoardItem(
-              key: widget.items[index].key,
+              key: ValueKey(index + 100 * widget.index),
               boardList: this,
               item: widget.items[index],
               index: index,
@@ -144,7 +117,7 @@ class BoardListState extends State<BoardList> {
           if (widget.boardView.draggedItemIndex == index &&
               widget.boardView.draggedListIndex == widget.index) {
             return Opacity(
-              opacity: 0.0,
+              opacity: 0,
               child: item,
             );
           } else {
@@ -163,11 +136,6 @@ class BoardListState extends State<BoardList> {
 
     return widget.boardViewMode == BoardViewMode.pages
         ? GestureDetector(
-            onTap: () {
-              if (widget.onTapList != null) {
-                widget.onTapList(widget.index);
-              }
-            },
             onTapDown: (pointer) {
               RenderBox object = context.findRenderObject();
               Offset pos = object.localToGlobal(Offset.zero);
