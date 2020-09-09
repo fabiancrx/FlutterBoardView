@@ -10,15 +10,20 @@ typedef void OnStartDragList(int listIndex);
 class BoardList extends StatefulWidget {
   final List<Widget> header;
   final Widget footer;
-  final List<BoardItem> items;
+  final List<Widget> items;
   final Color backgroundColor;
   final Color headerBackgroundColor;
   final BoardViewState boardView;
   final OnDropList onDropList;
   final OnTapList onTapList;
   final OnStartDragList onStartDragList;
-  final bool draggable;
   final BoardViewMode boardViewMode;
+
+  final Function(Rect bounds) onPreListDrag;
+  final Function(BoardList, int listIndex) onListDrag;
+  // These just pass up events from children
+  final Function(Rect bounds) onPreItemDrag;
+  final Function(BoardItem, int itemIndex) onItemDrag;
 
   const BoardList({
     Key key,
@@ -28,12 +33,15 @@ class BoardList extends StatefulWidget {
     this.backgroundColor,
     this.headerBackgroundColor,
     this.boardView,
-    this.draggable = true,
     this.index,
     this.onDropList,
     this.onTapList,
     this.onStartDragList,
     this.boardViewMode,
+    @required this.onPreListDrag,
+    @required this.onListDrag,
+    @required this.onPreItemDrag,
+    @required this.onItemDrag
   }) : super(key: key);
 
   final int index;
@@ -49,7 +57,7 @@ class BoardListState extends State<BoardList> {
   ScrollController boardListController = new ScrollController();
 
   double get left {
-    if(context == null) {
+    if (context == null) {
       return double.infinity;
     }
 
@@ -57,9 +65,9 @@ class BoardListState extends State<BoardList> {
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dx;
   }
-  
+
   double get right {
-    if(context == null) {
+    if (context == null) {
       return double.negativeInfinity;
     }
 
@@ -67,23 +75,23 @@ class BoardListState extends State<BoardList> {
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dx + renderBox.size.width;
   }
-  
+
   double get top {
     RenderBox renderBox = context.findRenderObject();
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dy;
   }
-  
+
   double get bottom {
     RenderBox renderBox = context.findRenderObject();
     Offset offset = renderBox.localToGlobal(Offset.zero);
     return offset.dy + renderBox.size.height;
   }
-  
+
   double get middleHorizontal {
     return (left + right) / 2;
   }
-  
+
   void onDropList(int listIndex) {
     widget.boardView.setState(() {
       if (widget.onDropList != null) {
@@ -93,22 +101,17 @@ class BoardListState extends State<BoardList> {
     });
   }
 
-  void _startDrag(Widget item, BuildContext context) {
-    if (widget.boardView != null && widget.draggable) {
-      widget.boardView.setState(() {
-        if (widget.onStartDragList != null) {
-          widget.onStartDragList(widget.index);
-        }
-        widget.boardView.startListIndex = widget.index;
-        widget.boardView.height = context.size.height;
-        widget.boardView.draggedListIndex = widget.index;
-        widget.boardView.draggedItemIndex = null;
-        widget.boardView.draggedItem = item;
-        widget.boardView.onDropList = onDropList;
-        widget.boardView.run();
-      });
-    }
-  }
+  // void _startDrag(Widget item, BuildContext context) {
+  //   if (widget.boardView != null) {
+  //     widget.boardView.setState(() {
+  //       widget.boardView.startListIndex = widget.index;
+  //       widget.boardView.draggedListIndex = widget.index;
+  //       widget.boardView.draggedItemIndex = null;
+  //       widget.boardView.draggedItem = item;
+  //       widget.boardView.run();
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -130,36 +133,25 @@ class BoardListState extends State<BoardList> {
         controller: boardListController,
         itemCount: widget.items.length,
         itemBuilder: (ctx, index) {
-          if (widget.items[index].boardList == null ||
-              widget.items[index].index != index ||
-              widget.items[index].boardList.widget.index != widget.index ||
-              widget.items[index].boardList != this) {
-            widget.items[index] = new BoardItem(
+          var item = BoardItem(
+              key: widget.items[index].key,
               boardList: this,
-              item: widget.items[index].item,
-              draggable: widget.items[index].draggable,
+              item: widget.items[index],
               index: index,
-              onDropItem: widget.items[index].onDropItem,
-              onTapItem: widget.items[index].onTapItem,
-              onDragItem: widget.items[index].onDragItem,
-              onStartDragItem: widget.items[index].onStartDragItem,
-            );
-          }
+              onPreItemDrag: widget.onPreItemDrag,
+              onItemDrag: widget.onItemDrag);
+
           if (widget.boardView.draggedItemIndex == index &&
               widget.boardView.draggedListIndex == widget.index) {
             return Opacity(
               opacity: 0.0,
-              child: widget.items[index],
+              child: item,
             );
           } else {
-            return widget.items[index];
+            return item;
           }
         },
       )));
-    }
-
-    if (widget.footer != null) {
-      listWidgets.add(widget.footer);
     }
 
     if (widget.boardView.listStates.length > widget.index) {
@@ -168,7 +160,7 @@ class BoardListState extends State<BoardList> {
     widget.boardView.listStates.insert(widget.index, this);
 
     var page = Column(children: listWidgets);
-    
+
     return widget.boardViewMode == BoardViewMode.pages
         ? GestureDetector(
             onTap: () {
@@ -177,25 +169,23 @@ class BoardListState extends State<BoardList> {
               }
             },
             onTapDown: (pointer) {
-              if (widget.draggable) {
-                RenderBox object = context.findRenderObject();
-                Offset pos = object.localToGlobal(Offset.zero);
-                widget.boardView.initialX = pos.dx;
-                widget.boardView.initialY = pos.dy;
-                widget.boardView.width = object.size.width * 0.8;
+              RenderBox object = context.findRenderObject();
+              Offset pos = object.localToGlobal(Offset.zero);
 
-                // If the touch position would occur outside the right side (after width
-                // adjustment), adjust initial's by the difference
-                if(pointer.globalPosition.dx > pos.dx + object.size.width * 0.8) {
-                  widget.boardView.initialX += pointer.globalPosition.dx - (pos.dx + object.size.width * 0.7);
-                }
+              Rect rect = Rect.fromLTWH(pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
+
+              // If the touch position would occur outside the right side (after width
+              // adjustment), adjust initial's by the difference
+              if (pointer.globalPosition.dx > rect.right) {
+                double correction = pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
+                rect = Rect.fromLTWH(rect.left + correction, rect.top, rect.width, rect.height);
               }
+
+              widget.onPreListDrag(rect);
             },
             onTapCancel: () {},
             onLongPress: () {
-              if (!widget.boardView.widget.isSelecting && widget.draggable) {
-                _startDrag(widget, context);
-              }
+              widget.onListDrag(widget, widget.index);
             },
             child: AbsorbPointer(child: page))
         : page;

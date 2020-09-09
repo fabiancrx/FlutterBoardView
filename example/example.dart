@@ -29,10 +29,7 @@ class BoardViewExample extends StatelessWidget {
     for (int i = 0; i < _listData.length; i++) {
       _lists.add(_createBoardList(_listData[i]));
     }
-    return BoardView(
-      lists: _lists,
-      boardViewController: boardViewController,
-    );
+    return BoardView();
   }
 
   Widget buildBoardItem(BoardItemObject itemObject) {

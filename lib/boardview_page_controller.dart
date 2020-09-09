@@ -7,7 +7,7 @@ class DynamicPageController extends PageController {
 
   double get viewportFraction => _viewportFraction;
 
-  DynamicPageController() : super(keepPage: false);
+  DynamicPageController();
 
   void updateViewportFraction(double fraction) {
     _viewportFraction = fraction;
