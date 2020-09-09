@@ -17,6 +17,8 @@ import 'boardview_page_controller.dart';
 // - Better way to manage changes to listStates?
 // - Locks between pages (prevent swiping on certain pages).
 // - Controller should work to forcibly jump to pages
+// - Make sure keys look correct (and add documentation to make sure
+// they are globally unique
 
 enum BoardViewMode {
   single,

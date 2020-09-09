@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 
+/*
+ * This is pretty much all a massive hack for a missing feature in the
+ * Flutter framework. Basically, Flutter doesn't support dynamically
+ * updating _viewportFraction for a PageView. This code solves that.
+ * There's a more devious problem though, and this is when _viewportFraction
+ * is updated while viewing the last page. Because the maxScrollExtent is
+ * changing, the pixel scroll position isn't quite computed accurately for
+ * some reason, so the last page transition gets really glitchy. There are
+ * a few ways to handle this, the best (and most consistent) I've found
+ * is just to force the user to go to the first screen before applying
+ * the zoom affect. This can been seen in the BoardViewController
+ * "toggleMode" function.
+ */
+
 class DynamicPageController extends PageController {
   double _viewportFraction = 1;
 
@@ -12,8 +26,6 @@ class DynamicPageController extends PageController {
 
     final PagePosition pagePosition = position as PagePosition;
     pagePosition.viewportFraction = fraction;
-    
-    //pagePosition.pixels.clamp(minScrollExtent, maxScrollExtent)
   }
 
   @override
@@ -41,10 +53,10 @@ class DynamicPageController extends PageController {
   }
 
   Future<void> animateToPage(
-      int page, {
-        @required Duration duration,
-        @required Curve curve,
-      }) {
+    int page, {
+    @required Duration duration,
+    @required Curve curve,
+  }) {
     final PagePosition position = this.position as PagePosition;
     return position.animateTo(
       position.getPixelsFromPage(page.toDouble()),
@@ -82,7 +94,8 @@ class DynamicPageController extends PageController {
 
 class DynamicPageScrollPhysics extends ScrollPhysics {
   /// Creates physics for a [PageView].
-  const DynamicPageScrollPhysics({ ScrollPhysics parent }) : super(parent: parent);
+  const DynamicPageScrollPhysics({ScrollPhysics parent})
+      : super(parent: parent);
 
   @override
   DynamicPageScrollPhysics applyTo(ScrollPhysics ancestor) {
@@ -90,28 +103,27 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   }
 
   double _getPage(ScrollMetrics position) {
-    if (position is PagePosition)
-      return position.page;
+    if (position is PagePosition) return position.page;
     return position.pixels / position.viewportDimension;
   }
 
   double _getPixels(ScrollMetrics position, double page) {
-    if (position is PagePosition)
-      return position.getPixelsFromPage(page);
+    if (position is PagePosition) return position.getPixelsFromPage(page);
     return page * position.viewportDimension;
   }
 
-  double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
+  double _getTargetPixels(
+      ScrollMetrics position, Tolerance tolerance, double velocity) {
     double page = _getPage(position);
     if (velocity < -tolerance.velocity)
       page -= 0.5;
-    else if (velocity > tolerance.velocity)
-      page += 0.5;
+    else if (velocity > tolerance.velocity) page += 0.5;
     return _getPixels(position, page.roundToDouble());
   }
 
   @override
-  Simulation createBallisticSimulation(ScrollMetrics position, double velocity) {
+  Simulation createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
@@ -120,7 +132,8 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
     final Tolerance tolerance = this.tolerance;
     final double target = _getTargetPixels(position, tolerance, velocity);
     if (target != position.pixels)
-      return ScrollSpringSimulation(spring, position.pixels, target, velocity, tolerance: tolerance);
+      return ScrollSpringSimulation(spring, position.pixels, target, velocity,
+          tolerance: tolerance);
     return null;
   }
 
@@ -128,7 +141,8 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   bool get allowImplicitScrolling => false;
 }
 
-class PagePosition extends ScrollPositionWithSingleContext implements PageMetrics {
+class PagePosition extends ScrollPositionWithSingleContext
+    implements PageMetrics {
   PagePosition({
     ScrollPhysics physics,
     ScrollContext context,
@@ -136,19 +150,19 @@ class PagePosition extends ScrollPositionWithSingleContext implements PageMetric
     bool keepPage = true,
     double viewportFraction = 1.0,
     ScrollPosition oldPosition,
-  }) : assert(initialPage != null),
+  })  : assert(initialPage != null),
         assert(keepPage != null),
         assert(viewportFraction != null),
         assert(viewportFraction > 0.0),
         _viewportFraction = viewportFraction,
         _pageToUseOnStartup = initialPage.toDouble(),
         super(
-        physics: physics,
-        context: context,
-        initialPixels: null,
-        keepScrollOffset: keepPage,
-        oldPosition: oldPosition,
-      );
+          physics: physics,
+          context: context,
+          initialPixels: null,
+          keepScrollOffset: keepPage,
+          oldPosition: oldPosition,
+        );
 
   final int initialPage;
   double _pageToUseOnStartup;
@@ -156,9 +170,9 @@ class PagePosition extends ScrollPositionWithSingleContext implements PageMetric
   @override
   double get viewportFraction => _viewportFraction;
   double _viewportFraction;
+
   set viewportFraction(double value) {
-    if (_viewportFraction == value)
-      return;
+    if (_viewportFraction == value) return;
     final double oldPage = page;
     _viewportFraction = value;
 
@@ -173,10 +187,12 @@ class PagePosition extends ScrollPositionWithSingleContext implements PageMetric
   //
   // The value is 0 if viewportFraction is less than or equal to 1, larger than 0
   // otherwise.
-  double get _initialPageOffset => math.max(0, viewportDimension * (viewportFraction - 1) / 2);
+  double get _initialPageOffset =>
+      math.max(0, viewportDimension * (viewportFraction - 1) / 2);
 
   double getPageFromPixels(double pixels, double viewportDimension) {
-    final double actual = math.max(0.0, pixels - _initialPageOffset) / math.max(1.0, viewportDimension * viewportFraction);
+    final double actual = math.max(0.0, pixels - _initialPageOffset) /
+        math.max(1.0, viewportDimension * viewportFraction);
     final double round = actual.roundToDouble();
     if ((actual - round).abs() < precisionErrorTolerance) {
       return round;
@@ -191,23 +207,28 @@ class PagePosition extends ScrollPositionWithSingleContext implements PageMetric
   @override
   double get page {
     assert(
-    pixels == null || (minScrollExtent != null && maxScrollExtent != null),
-    'Page value is only available after content dimensions are established.',
+      pixels == null || (minScrollExtent != null && maxScrollExtent != null),
+      'Page value is only available after content dimensions are established.',
     );
-    return pixels == null ? null : getPageFromPixels(pixels.clamp(minScrollExtent, maxScrollExtent) as double, viewportDimension);
+    return pixels == null
+        ? null
+        : getPageFromPixels(
+            pixels.clamp(minScrollExtent, maxScrollExtent) as double,
+            viewportDimension);
   }
 
   @override
   void saveScrollOffset() {
-    PageStorage.of(context.storageContext)?.writeState(context.storageContext, getPageFromPixels(pixels, viewportDimension));
+    PageStorage.of(context.storageContext)?.writeState(
+        context.storageContext, getPageFromPixels(pixels, viewportDimension));
   }
 
   @override
   void restoreScrollOffset() {
     if (pixels == null) {
-      final double value = PageStorage.of(context.storageContext)?.readState(context.storageContext) as double;
-      if (value != null)
-        _pageToUseOnStartup = value;
+      final double value = PageStorage.of(context.storageContext)
+          ?.readState(context.storageContext) as double;
+      if (value != null) _pageToUseOnStartup = value;
     }
   }
 
@@ -216,7 +237,9 @@ class PagePosition extends ScrollPositionWithSingleContext implements PageMetric
     final double oldViewportDimensions = this.viewportDimension;
     final bool result = super.applyViewportDimension(viewportDimension);
     final double oldPixels = pixels;
-    final double page = (oldPixels == null || oldViewportDimensions == 0.0) ? _pageToUseOnStartup : getPageFromPixels(oldPixels, oldViewportDimensions);
+    final double page = (oldPixels == null || oldViewportDimensions == 0.0)
+        ? _pageToUseOnStartup
+        : getPageFromPixels(oldPixels, oldViewportDimensions);
     final double newPixels = getPixelsFromPage(page);
 
     if (newPixels != oldPixels) {

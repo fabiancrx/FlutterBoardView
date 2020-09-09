@@ -18,25 +18,26 @@ class BoardList extends StatefulWidget {
 
   final Function(Rect bounds) onPreListDrag;
   final Function(BoardList, int listIndex) onListDrag;
+
   // These just pass up events from children
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
 
-  const BoardList({
-    Key key,
-    this.header,
-    this.items,
-    this.footer,
-    this.backgroundColor,
-    this.headerBackgroundColor,
-    this.boardView,
-    this.index,
-    this.boardViewMode,
-    @required this.onPreListDrag,
-    @required this.onListDrag,
-    @required this.onPreItemDrag,
-    @required this.onItemDrag
-  }) : super(key: key);
+  const BoardList(
+      {Key key,
+      this.header,
+      this.items,
+      this.footer,
+      this.backgroundColor,
+      this.headerBackgroundColor,
+      this.boardView,
+      this.index,
+      this.boardViewMode,
+      @required this.onPreListDrag,
+      @required this.onListDrag,
+      @required this.onPreItemDrag,
+      @required this.onItemDrag})
+      : super(key: key);
 
   final int index;
 
@@ -140,13 +141,16 @@ class BoardListState extends State<BoardList> {
               RenderBox object = context.findRenderObject();
               Offset pos = object.localToGlobal(Offset.zero);
 
-              Rect rect = Rect.fromLTWH(pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
+              Rect rect = Rect.fromLTWH(
+                  pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
 
               // If the touch position would occur outside the right side (after width
               // adjustment), adjust initial's by the difference
               if (pointer.globalPosition.dx > rect.right) {
-                double correction = pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
-                rect = Rect.fromLTWH(rect.left + correction, rect.top, rect.width, rect.height);
+                double correction = pointer.globalPosition.dx -
+                    (rect.left + object.size.width * 0.7);
+                rect = Rect.fromLTWH(
+                    rect.left + correction, rect.top, rect.width, rect.height);
               }
 
               widget.onPreListDrag(rect);
