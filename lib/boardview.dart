@@ -45,7 +45,7 @@ class BoardView extends StatefulWidget {
       @required this.lists,
       @required this.canDrag,
       @required this.onAttemptDrag,
-      @required this.initialPage,
+      this.initialPage = 0,
       this.onListsChanged})
       : super(key: key);
 
@@ -108,6 +108,7 @@ class BoardViewState extends State<BoardView>
   /// An over-ride to a page lock so that the system can use "animateTo"
   /// to force got to a page.
   int allowToPage;
+
   /// If a user is allowed to intercept a page animation.
   bool allowPageAnimationInterception = true;
 
@@ -132,9 +133,8 @@ class BoardViewState extends State<BoardView>
         });
       });
 
-    boardViewController = DynamicPageController(
-
-    );
+    boardViewController =
+        DynamicPageController(initialPage: widget.initialPage);
   }
 
   @override
@@ -149,7 +149,8 @@ class BoardViewState extends State<BoardView>
   /// If [allowAnimationInterception] is `true`, a user may touch
   /// the screen during the animation to cancel the animation. Only
   /// make this true when animating between pages that are NOT locked.
-  Future<void> animateTo(bool allowAnimationInterception, int pageIndex, Duration duration, Curve curve) async {
+  Future<void> animateTo(bool allowAnimationInterception, int pageIndex,
+      Duration duration, Curve curve) async {
     setState(() {
       allowToPage = pageIndex;
       allowPageAnimationInterception = allowAnimationInterception;
@@ -169,6 +170,8 @@ class BoardViewState extends State<BoardView>
     await boardViewController.animateToPage(0,
         duration: Duration(milliseconds: 400),
         curve: Curves.fastLinearToSlowEaseIn);
+
+    allowPageAnimationInterception = true;
 
     if (boardViewMode == BoardViewMode.single) {
       await modeAnimationController.forward();
@@ -340,14 +343,20 @@ class BoardViewState extends State<BoardView>
             itemCount: widget.lists.length,
             scrollDirection: Axis.horizontal,
             controller: boardViewController,
-            physics: allowPageAnimationInterception ? DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
-              if (allowToPage != null) {
-                return (to < from && allowToPage < from) ||
-                    (to > from && allowToPage > from);
-              }
+            physics: allowPageAnimationInterception
+                ? DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
+                    if(boardViewMode == BoardViewMode.pages) {
+                      return true;
+                    }
 
-              return widget.onAttemptDrag(from, to);
-            }) : NeverScrollableScrollPhysics(),
+                    if (allowToPage != null) {
+                      return (to < from && allowToPage < from) ||
+                          (to > from && allowToPage > from);
+                    }
+
+                    return widget.onAttemptDrag(from, to);
+                  })
+                : NeverScrollableScrollPhysics(),
             pageSnapping: false,
             itemBuilder: (context, index) {
               var boardList = BoardList(

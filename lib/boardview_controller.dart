@@ -11,7 +11,7 @@ class BoardViewController {
   void animateTo(int index, {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) {
     if (state.boardViewController != null &&
         state.boardViewController.hasClients) {
-      state.animateTo(false, index,  Duration(milliseconds: 5000), curve);
+      state.animateTo(false, index,  Duration(milliseconds: durationMs), curve);
     }
   }
 
