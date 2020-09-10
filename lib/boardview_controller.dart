@@ -8,20 +8,10 @@ class BoardViewController {
 
   BoardViewState state;
 
-  Future<void> animateTo(int index, {int durationMs = 300, curve: Curves.ease}) async {
+  void animateTo(int index, {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) {
     if (state.boardViewController != null &&
         state.boardViewController.hasClients) {
-
-      // Get current page
-      int currentPage = state.boardViewController.page.toInt();
-      state.allowFromPage = currentPage;
-      state.allowToPage = index;
-
-      await state.boardViewController.animateToPage(index,
-          duration: Duration(milliseconds: durationMs), curve: curve);
-
-      state.allowFromPage = null;
-      state.allowToPage = null;
+      state.animateTo(false, index,  Duration(milliseconds: 5000), curve);
     }
   }
 

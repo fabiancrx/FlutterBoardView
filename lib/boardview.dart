@@ -15,10 +15,10 @@ import 'boardview_page_controller.dart';
 // TODO features
 // - More optimized way to lookup RenderBox's?
 // - Better way to manage changes to listStates?
-// - Locks between pages (prevent swiping on certain pages).
-// - Controller should work to forcibly jump to pages
+// - Add initial page
 // - Make sure keys look correct (and add documentation to make sure
 // they are globally unique
+// - Haptics on long press?
 
 enum BoardViewMode {
   single,
@@ -100,7 +100,11 @@ class BoardViewState extends State<BoardView>
   /// drag zone.
   bool horizontalDragLocked = true;
 
-  int allowFromPage, allowToPage;
+  /// An over-ride to a page lock so that the system can use "animateTo"
+  /// to force got to a page.
+  int allowToPage;
+  /// If a user is allowed to intercept a page animation.
+  bool allowPageAnimationInterception = true;
 
   @override
   void initState() {
@@ -130,6 +134,25 @@ class BoardViewState extends State<BoardView>
     boardViewController.dispose();
 
     super.dispose();
+  }
+
+  /// Animates to the desired page, ignoring any pages locks.
+  /// If [allowAnimationInterception] is `true`, a user may touch
+  /// the screen during the animation to cancel the animation. Only
+  /// make this true when animating between pages that are NOT locked.
+  Future<void> animateTo(bool allowAnimationInterception, int pageIndex, Duration duration, Curve curve) async {
+    setState(() {
+      allowToPage = pageIndex;
+      allowPageAnimationInterception = allowAnimationInterception;
+    });
+
+    await boardViewController.animateToPage(pageIndex,
+        duration: duration, curve: curve);
+
+    setState(() {
+      allowToPage = null;
+      allowPageAnimationInterception = true;
+    });
   }
 
   /// Toggles between zoomed-in and zoomed-out modes
@@ -308,17 +331,18 @@ class BoardViewState extends State<BoardView>
             itemCount: widget.lists.length,
             scrollDirection: Axis.horizontal,
             controller: boardViewController,
-            physics: DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
-              if(from == allowFromPage && to == allowToPage) {
-                return true;
+            physics: allowPageAnimationInterception ? DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
+              if (allowToPage != null) {
+                return (to < from && allowToPage < from) ||
+                    (to > from && allowToPage > from);
               }
 
-              if(from == 2 && to == 1) {
+              if (from == 2 && to == 1) {
                 return false;
               }
 
               return true;
-            }),
+            }) : NeverScrollableScrollPhysics(),
             pageSnapping: false,
             itemBuilder: (context, index) {
               var boardList = BoardList(
