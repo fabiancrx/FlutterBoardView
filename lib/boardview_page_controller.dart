@@ -17,6 +17,8 @@ import 'package:flutter/material.dart';
  * "toggleMode" function.
  */
 
+typedef OnAttemptDrag(int from, int to);
+
 class DynamicPageController extends PageController {
   double _viewportFraction = 1;
 
@@ -100,7 +102,7 @@ class DynamicPageController extends PageController {
 class DynamicPageScrollPhysics extends ScrollPhysics {
   /// Requests whether a drag may occur from the page at index "from"
   /// to the page at index "to". Return true to allow, false to deny.
-  final Function(int from, int to) onAttemptDrag;
+  final OnAttemptDrag onAttemptDrag;
   /// Creates physics for a [PageView].
   const DynamicPageScrollPhysics(
       {ScrollPhysics parent, @required this.onAttemptDrag})

@@ -36,11 +36,14 @@ class BoardView extends StatefulWidget {
   /// Called whenever [BoardView] modifies [lists]
   final VoidCallback onListsChanged;
 
+  final OnAttemptDrag onAttemptDrag;
+
   BoardView(
       {Key key,
       @required this.controller,
       @required this.lists,
       @required this.canDrag,
+      @required this.onAttemptDrag,
       this.onListsChanged})
       : super(key: key);
 
@@ -336,12 +339,8 @@ class BoardViewState extends State<BoardView>
                 return (to < from && allowToPage < from) ||
                     (to > from && allowToPage > from);
               }
-
-              if (from == 2 && to == 1) {
-                return false;
-              }
-
-              return true;
+              
+              return widget.onAttemptDrag(from, to);
             }) : NeverScrollableScrollPhysics(),
             pageSnapping: false,
             itemBuilder: (context, index) {
