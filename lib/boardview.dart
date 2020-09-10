@@ -29,6 +29,7 @@ class BoardView extends StatefulWidget {
   /// [BoardView] will automatically re-order these for you. Use
   /// [onListsChanged] to detect when this happens.
   final List<List<Widget>> lists;
+
   final BoardViewController controller;
   final bool canDrag;
 
@@ -98,6 +99,8 @@ class BoardViewState extends State<BoardView>
   /// horizontal drag automatically, or they must exit and re-enter the horizontal
   /// drag zone.
   bool horizontalDragLocked = true;
+
+  int allowFromPage, allowToPage;
 
   @override
   void initState() {
@@ -305,7 +308,17 @@ class BoardViewState extends State<BoardView>
             itemCount: widget.lists.length,
             scrollDirection: Axis.horizontal,
             controller: boardViewController,
-            physics: DynamicPageScrollPhysics(),
+            physics: DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
+              if(from == allowFromPage && to == allowToPage) {
+                return true;
+              }
+
+              if(from == 2 && to == 1) {
+                return false;
+              }
+
+              return true;
+            }),
             pageSnapping: false,
             itemBuilder: (context, index) {
               var boardList = BoardList(

@@ -8,13 +8,20 @@ class BoardViewController {
 
   BoardViewState state;
 
-  Future<void> animateTo(int index, {Duration duration, Curve curve}) async {
-    //double offset = index * state.widget.width;
-    double offset = 0;
+  Future<void> animateTo(int index, {int durationMs = 300, curve: Curves.ease}) async {
     if (state.boardViewController != null &&
         state.boardViewController.hasClients) {
-      await state.boardViewController
-          .animateTo(offset, duration: duration, curve: curve);
+
+      // Get current page
+      int currentPage = state.boardViewController.page.toInt();
+      state.allowFromPage = currentPage;
+      state.allowToPage = index;
+
+      await state.boardViewController.animateToPage(index,
+          duration: Duration(milliseconds: durationMs), curve: curve);
+
+      state.allowFromPage = null;
+      state.allowToPage = null;
     }
   }
 

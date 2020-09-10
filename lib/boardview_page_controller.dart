@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
+import 'package:flutter/material.dart';
 
 /*
  * This is pretty much all a massive hack for a missing feature in the
@@ -26,6 +27,10 @@ class DynamicPageController extends PageController {
 
     final PagePosition pagePosition = position as PagePosition;
     pagePosition.viewportFraction = fraction;
+  }
+
+  bool get ready {
+    return positions.length == 1;
   }
 
   @override
@@ -93,13 +98,19 @@ class DynamicPageController extends PageController {
 }
 
 class DynamicPageScrollPhysics extends ScrollPhysics {
+  /// Requests whether a drag may occur from the page at index "from"
+  /// to the page at index "to". Return true to allow, false to deny.
+  final Function(int from, int to) onAttemptDrag;
+
   /// Creates physics for a [PageView].
-  const DynamicPageScrollPhysics({ScrollPhysics parent})
+  const DynamicPageScrollPhysics(
+      {ScrollPhysics parent, @required this.onAttemptDrag})
       : super(parent: parent);
 
   @override
   DynamicPageScrollPhysics applyTo(ScrollPhysics ancestor) {
-    return DynamicPageScrollPhysics(parent: buildParent(ancestor));
+    return DynamicPageScrollPhysics(
+        parent: buildParent(ancestor), onAttemptDrag: onAttemptDrag);
   }
 
   double _getPage(ScrollMetrics position) {
@@ -119,6 +130,93 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
       page -= 0.5;
     else if (velocity > tolerance.velocity) page += 0.5;
     return _getPixels(position, page.roundToDouble());
+  }
+
+  // position is the pixels of the left edge of the screen
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    assert(() {
+      if (value == position.pixels) {
+        throw FlutterError(
+            '$runtimeType.applyBoundaryConditions() was called redundantly.\n'
+            'The proposed new position, $value, is exactly equal to the current position of the '
+            'given ${position.runtimeType}, ${position.pixels}.\n'
+            'The applyBoundaryConditions method should only be called when the value is '
+            'going to actually change the pixels, otherwise it is redundant.\n'
+            'The physics object in question was:\n'
+            '  $this\n'
+            'The position object in question was:\n'
+            '  $position\n');
+      }
+      return true;
+    }());
+
+    /*
+     * Handle the hard boundaries (min and max extents)
+     * (identical to ClampingScrollPhysics)
+     */
+    if (value < position.pixels &&
+        position.pixels <= position.minScrollExtent) // under-scroll
+      return value - position.pixels;
+    if (position.maxScrollExtent <= position.pixels &&
+        position.pixels < value) // over-scroll
+      return value - position.pixels;
+    if (value < position.minScrollExtent &&
+        position.minScrollExtent < position.pixels) // hit top edge
+      return value - position.minScrollExtent;
+    if (position.pixels < position.maxScrollExtent &&
+        position.maxScrollExtent < value) // hit bottom edge
+      return value - position.maxScrollExtent;
+
+    // Figure out what page we are on and which one we are going to.
+    // This does not account for viewportFraction, but could be added if
+    // needed by multiplying viewportDimension by viewportFraction.
+    // 'fromPage' is determined by whichever page touches the horizontal
+    // midpoint of the display area
+    int fromPage = (position.pixels + position.viewportDimension / 2) ~/
+        position.viewportDimension;
+    int toPage = value < position.pixels ? fromPage - 1 : fromPage + 1;
+    int maxPage =
+        (position.maxScrollExtent / position.viewportDimension).ceil();
+
+    /*
+     * If fromPage and toPage are equal, no point in checking for lock,
+     * just return default behavior.
+     */
+    if (fromPage == toPage.clamp(0, maxPage)) {
+      return parent.applyBoundaryConditions(position, value);
+    }
+
+    // Check with the client if this drag is allowed.
+    bool allow = onAttemptDrag(fromPage, toPage);
+
+    if (allow) {
+      return 0.0;
+    } else {
+      // Compute the page boundary.
+      // If moving left:
+      // - pagePixels refers to the pixel value of the left-edge
+      //   which corresponds to the page
+      // If moving right:
+      // - pagePixels refers to the pixel value of the right-edge
+      //    which correspond to the page
+      double pagePixels = toPage * position.viewportDimension +
+          (toPage < fromPage
+              ? position.viewportDimension
+              : -position.viewportDimension);
+
+      // This is a small correction needed due to how "fromPage" is computed.
+      // Because "fromPage" is computed based off whichever page
+      // intersects the horizontal midpoint, the "fromPage" and "toPage"
+      // variables will change immediately when this half point changes,
+      // which can get the page stuck. This code makes sure that the
+      // nearest page can always be reached.
+      if (value < pagePixels) {
+        return value - position.pixels;
+      } else {
+        return 0.0;
+      }
+    }
   }
 
   @override
