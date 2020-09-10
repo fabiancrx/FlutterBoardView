@@ -108,7 +108,7 @@ class BoardListState extends State<BoardList> {
         itemCount: widget.items.length,
         itemBuilder: (ctx, index) {
           var item = BoardItem(
-              key: ValueKey(index + 100 * widget.index),
+              key: widget.items[index].key,
               boardList: this,
               item: widget.items[index],
               index: index,

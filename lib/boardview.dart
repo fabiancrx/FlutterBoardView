@@ -12,11 +12,6 @@ import 'package:flutter/widgets.dart';
 import 'boardview_controller.dart';
 import 'boardview_page_controller.dart';
 
-// TODO features
-// - More optimized way to lookup RenderBox's?
-// - Better way to manage changes to listStates?
-// - Make sure keys look correct (and add documentation to make sure they are globally unique)
-
 enum BoardViewMode {
   single,
   pages,
@@ -24,10 +19,14 @@ enum BoardViewMode {
 
 class BoardView extends StatefulWidget {
   /// [BoardView] will automatically re-order these for you. Use
-  /// [onListsChanged] to detect when this happens.
+  /// [onListsChanged] to detect when this happens. Note:
+  /// All widgets should have a key that is globally unique across
+  /// all lists.
   final List<List<Widget>> lists;
 
   final BoardViewController controller;
+
+  /// Whether items (or lists) can be re-ordered
   final bool canDrag;
 
   /// Called whenever [BoardView] modifies [lists]
@@ -44,10 +43,12 @@ class BoardView extends StatefulWidget {
       @required this.controller,
       @required this.lists,
       @required this.canDrag,
-      @required this.onAttemptDrag,
+      this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
-      : super(key: key);
+      : assert(!canDrag || onAttemptDrag == null,
+            "Cannot lock pages when item drag is enabled."),
+        super(key: key);
 
   @override
   State<StatefulWidget> createState() => BoardViewState();
@@ -345,7 +346,7 @@ class BoardViewState extends State<BoardView>
             controller: boardViewController,
             physics: allowPageAnimationInterception
                 ? DynamicPageScrollPhysics(onAttemptDrag: (from, to) {
-                    if(boardViewMode == BoardViewMode.pages) {
+                    if (boardViewMode == BoardViewMode.pages) {
                       return true;
                     }
 
@@ -354,13 +355,17 @@ class BoardViewState extends State<BoardView>
                           (to > from && allowToPage > from);
                     }
 
-                    return widget.onAttemptDrag(from, to);
+                    if (widget.canDrag) {
+                      return true;
+                    } else {
+                      return widget.onAttemptDrag(from, to);
+                    }
                   })
                 : NeverScrollableScrollPhysics(),
             pageSnapping: false,
             itemBuilder: (context, index) {
               var boardList = BoardList(
-                key: ValueKey(index + 10000),
+                key: ValueKey(widget.lists[index]),
                 items: widget.lists[index],
                 boardView: this,
                 boardViewMode: boardViewMode,
