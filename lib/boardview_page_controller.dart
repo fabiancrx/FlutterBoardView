@@ -24,6 +24,9 @@ class DynamicPageController extends PageController {
 
   double get viewportFraction => _viewportFraction;
 
+  DynamicPageController({int initialPage = 0})
+      : super(initialPage: initialPage);
+
   void updateViewportFraction(double fraction) {
     _viewportFraction = fraction;
 
@@ -103,6 +106,7 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   /// Requests whether a drag may occur from the page at index "from"
   /// to the page at index "to". Return true to allow, false to deny.
   final OnAttemptDrag onAttemptDrag;
+
   /// Creates physics for a [PageView].
   const DynamicPageScrollPhysics(
       {ScrollPhysics parent, @required this.onAttemptDrag})

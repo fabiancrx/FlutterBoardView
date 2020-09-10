@@ -15,10 +15,7 @@ import 'boardview_page_controller.dart';
 // TODO features
 // - More optimized way to lookup RenderBox's?
 // - Better way to manage changes to listStates?
-// - Add initial page
-// - Make sure keys look correct (and add documentation to make sure
-// they are globally unique
-// - Haptics on long press?
+// - Make sure keys look correct (and add documentation to make sure they are globally unique)
 
 enum BoardViewMode {
   single,
@@ -36,7 +33,11 @@ class BoardView extends StatefulWidget {
   /// Called whenever [BoardView] modifies [lists]
   final VoidCallback onListsChanged;
 
+  /// See [DynamicPageScrollPhysics]
   final OnAttemptDrag onAttemptDrag;
+
+  /// PageView initial page
+  final int initialPage;
 
   BoardView(
       {Key key,
@@ -44,6 +45,7 @@ class BoardView extends StatefulWidget {
       @required this.lists,
       @required this.canDrag,
       @required this.onAttemptDrag,
+      @required this.initialPage,
       this.onListsChanged})
       : super(key: key);
 
@@ -53,7 +55,7 @@ class BoardView extends StatefulWidget {
 
 class BoardViewState extends State<BoardView>
     with SingleTickerProviderStateMixin {
-  DynamicPageController boardViewController = DynamicPageController();
+  DynamicPageController boardViewController;
   BoardViewMode boardViewMode = BoardViewMode.single;
   Animation<double> modeAnimation;
   AnimationController modeAnimationController;
@@ -129,6 +131,10 @@ class BoardViewState extends State<BoardView>
           }
         });
       });
+
+    boardViewController = DynamicPageController(
+
+    );
   }
 
   @override
@@ -339,7 +345,7 @@ class BoardViewState extends State<BoardView>
                 return (to < from && allowToPage < from) ||
                     (to > from && allowToPage > from);
               }
-              
+
               return widget.onAttemptDrag(from, to);
             }) : NeverScrollableScrollPhysics(),
             pageSnapping: false,
