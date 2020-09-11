@@ -7,10 +7,25 @@ class BoardViewExample extends StatefulWidget {
   _BoardViewExampleState createState() => _BoardViewExampleState();
 }
 
+class MyPage implements BoardPage {
+  final List<Widget> _widgets;
+
+  @override
+  List<Widget> get widgets => _widgets;
+
+  @override
+  double scrollPosition = 0;
+
+  @override
+  int id;
+
+  MyPage(this.id, this.scrollPosition, this._widgets);
+}
+
 class _BoardViewExampleState extends State<BoardViewExample> {
-  final List<List<Widget>> _listData = [
-    [Text("Page 1 - Item 1"), Text("Page 1 - Item 2")],
-    [Text("Page 2 - Item 1")]
+  final List<BoardPage> _listData = [
+    MyPage(0, 0, [Text("Page 1 - Item 1"), Text("Page 1 - Item 2")]),
+    MyPage(1, 0, [Text("Page 2 - Item 1")]),
   ];
 
   BoardViewController boardViewController = new BoardViewController();

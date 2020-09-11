@@ -8,9 +8,7 @@ typedef void OnTapList(int listIndex);
 typedef void OnStartDragList(int listIndex);
 
 class BoardList extends StatefulWidget {
-  final List<Widget> header;
-  final Widget footer;
-  final List<Widget> items;
+  final BoardPage page;
   final Color backgroundColor;
   final Color headerBackgroundColor;
   final BoardViewState boardView;
@@ -23,30 +21,25 @@ class BoardList extends StatefulWidget {
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
 
-  final double initialScrollOffset ;
+  final int index;
 
   const BoardList(
       {Key key,
-      this.header,
-      this.items,
-      this.footer,
+      this.page,
       this.backgroundColor,
       this.headerBackgroundColor,
       this.boardView,
       this.index,
       this.boardViewMode,
-      this.initialScrollOffset = 0,
       @required this.onPreListDrag,
       @required this.onListDrag,
       @required this.onPreItemDrag,
       @required this.onItemDrag})
       : super(key: key);
 
-  final int index;
-
   @override
   State<StatefulWidget> createState() {
-    return BoardListState(this.initialScrollOffset);
+    return BoardListState();
   }
 }
 
@@ -54,11 +47,20 @@ class BoardListState extends State<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController;
 
-  double scrollOffset = 0;
+  @override
+  void initState() {
+    super.initState();
 
-  BoardListState(double initialScrollOffset)
-      : boardListController =
-            ScrollController(initialScrollOffset: initialScrollOffset), scrollOffset = initialScrollOffset;
+    boardListController = ScrollController(
+        initialScrollOffset: widget.page.scrollPosition,
+        keepScrollOffset: false);
+  }
+
+  @override
+  void dispose() {
+    boardListController.dispose();
+    super.dispose();
+  }
 
   double get left {
     if (context == null) {
@@ -98,36 +100,29 @@ class BoardListState extends State<BoardList> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> listWidgets = new List<Widget>();
-    if (widget.header != null) {
-      listWidgets.add(Container(
-        color: widget.headerBackgroundColor,
-        child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: widget.header),
-      ));
+    if (widget.boardView.listStates.length > widget.index) {
+      widget.boardView.listStates.removeAt(widget.index);
     }
+    widget.boardView.listStates.insert(widget.index, this);
 
-    if (widget.items != null) {
-      listWidgets.add(Flexible(
-          child: NotificationListener(
-            onNotification: (notification) {
-              if (notification is ScrollNotification) {
-                scrollOffset = notification.metrics.pixels;
-              }
 
-              return false;
-            },
-            child: new ListView.builder(
-        shrinkWrap: true,
-        controller: boardListController,
-        itemCount: widget.items.length,
-        itemBuilder: (ctx, index) {
+    var list = NotificationListener(
+        onNotification: (notification) {
+          if (notification is ScrollNotification) {
+            widget.page.scrollPosition = notification.metrics.pixels;
+          }
+
+          return true;
+        },
+        child: ListView.builder(
+          shrinkWrap: true,
+          controller: boardListController,
+          itemCount: widget.page.widgets.length,
+          itemBuilder: (ctx, index) {
             var item = BoardItem(
-                key: widget.items[index].key,
+                key: widget.page.widgets[index].key,
                 boardList: this,
-                item: widget.items[index],
+                item: widget.page.widgets[index],
                 index: index,
                 onPreItemDrag: widget.onPreItemDrag,
                 onItemDrag: widget.onItemDrag);
@@ -141,43 +136,33 @@ class BoardListState extends State<BoardList> {
             } else {
               return item;
             }
-        },
-      ),
-          )));
+          },
+        ),
+      );
+
+    return list;
+  }
+
+  void onTapDown(pointer) {
+    RenderBox object = context.findRenderObject();
+    Offset pos = object.localToGlobal(Offset.zero);
+
+    Rect rect = Rect.fromLTWH(
+        pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
+
+    // If the touch position would occur outside the right side (after width
+    // adjustment), adjust initial's by the difference
+    if (pointer.globalPosition.dx > rect.right) {
+      double correction =
+          pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
+      rect = Rect.fromLTWH(
+          rect.left + correction, rect.top, rect.width, rect.height);
     }
 
-    if (widget.boardView.listStates.length > widget.index) {
-      widget.boardView.listStates.removeAt(widget.index);
-    }
-    widget.boardView.listStates.insert(widget.index, this);
+    widget.onPreListDrag(rect);
+  }
 
-    var page = Column(children: listWidgets);
-
-    return widget.boardViewMode == BoardViewMode.pages
-        ? GestureDetector(
-            onTapDown: (pointer) {
-              RenderBox object = context.findRenderObject();
-              Offset pos = object.localToGlobal(Offset.zero);
-
-              Rect rect = Rect.fromLTWH(
-                  pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
-
-              // If the touch position would occur outside the right side (after width
-              // adjustment), adjust initial's by the difference
-              if (pointer.globalPosition.dx > rect.right) {
-                double correction = pointer.globalPosition.dx -
-                    (rect.left + object.size.width * 0.7);
-                rect = Rect.fromLTWH(
-                    rect.left + correction, rect.top, rect.width, rect.height);
-              }
-
-              widget.onPreListDrag(rect);
-            },
-            onTapCancel: () {},
-            onLongPress: () {
-              widget.onListDrag(widget, widget.index);
-            },
-            child: AbsorbPointer(child: page))
-        : page;
+  void onLongPress() {
+    widget.onListDrag(widget, widget.index);
   }
 }
