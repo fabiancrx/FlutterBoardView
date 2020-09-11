@@ -36,6 +36,9 @@ class _BoardViewExampleState extends State<BoardViewExample> {
       canDrag: true,
       controller: boardViewController,
       lists: _listData,
+      onItemDropped: (int oldListIndex, int newListIndex, int oldItemIndex,
+          int newItemIndex) {},
+      onListDropped: (int oldIndex, int newIndex) {},
     );
   }
 }
