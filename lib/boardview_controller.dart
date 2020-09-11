@@ -8,9 +8,22 @@ class BoardViewController {
 
   BoardViewState state;
 
-  BoardViewMode get mode => state.boardViewMode;
+  BoardViewMode get mode => state == null ? BoardViewMode.single : state.boardViewMode;
 
-  void animateTo(int index,
+  int get page {
+    if (state.boardViewController != null &&
+        state.boardViewController.hasClients) {
+      return state.boardViewController.page.toInt();
+    } else {
+      return 0;
+    }
+  }
+
+  void animateToBottom(int page, {int durationMs = 600, curve: Curves.linear}) {
+    state.animateToBottom(page, Duration(milliseconds: durationMs), curve);
+  }
+
+  void animateToPage(int index,
       {int durationMs = 300,
       curve: Curves.ease,
       allowAnimationInterception = false}) {
@@ -23,7 +36,7 @@ class BoardViewController {
   Future<void> toggleMode() async {
     if (state.boardViewController != null &&
         state.boardViewController.hasClients) {
-      state.toggleMode();
+      await state.toggleMode();
     }
   }
 }

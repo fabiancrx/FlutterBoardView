@@ -174,8 +174,27 @@ class BoardViewState extends State<BoardView>
     });
   }
 
+  /// Animates to the bottom of the specified page
+  Future<void> animateToBottom(int page, Duration duration, Curve curve) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (page < listStates.length) {
+        if (listStates[page].boardListController != null &&
+            listStates[page].boardListController.hasClients) {
+          listStates[page].boardListController.animateTo(
+              listStates[page].boardListController.position.maxScrollExtent + 1000,
+              duration: duration,
+              curve: curve);
+        }
+      }
+    });
+
+    // Ensures "maxScrollExtent" is accurate by making sure any changes
+    // are re-built
+    setState(() {});
+  }
+
   /// Toggles between zoomed-in and zoomed-out modes
-  void toggleMode() async {
+  Future<void> toggleMode() async {
     await boardViewController.animateToPage(0,
         duration: Duration(milliseconds: 400),
         curve: Curves.fastLinearToSlowEaseIn);
@@ -434,47 +453,60 @@ class BoardViewState extends State<BoardView>
                           margin: EdgeInsets.all(8),
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color.fromRGBO(0, 0, 0, 0.7)
-                          ),
-                          child: IconButton(icon: Icon(Icons.delete), color: Colors.red, iconSize: 30, padding: EdgeInsets.all(0), onPressed: () async {
-                            setState(() {
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  titlePadding: EdgeInsets.only(top: 16, left: 16, right: 8),
-                                  contentPadding: EdgeInsets.all(16),
-                                  title: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Are you sure?"),
-                                      IconButton(icon: Icon(Icons.close), onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },)
-                                    ],
-                                  ),
-                                  content: Text("Are you sure you want to delete this page?"),
-                                  actions: [
-                                    FlatButton(
-                                      child: Text("Cancel"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    FlatButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            widget.lists.removeAt(index);
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text("Delete", style: TextStyle(color: Colors.red))
-                                    )
-                                  ],
-                                );
+                              color: Color.fromRGBO(0, 0, 0, 0.7)),
+                          child: IconButton(
+                            icon: Icon(Icons.delete),
+                            color: Colors.red,
+                            iconSize: 30,
+                            padding: EdgeInsets.all(0),
+                            onPressed: () async {
+                              setState(() {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        titlePadding: EdgeInsets.only(
+                                            top: 16, left: 16, right: 8),
+                                        contentPadding: EdgeInsets.all(16),
+                                        title: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Are you sure?"),
+                                            IconButton(
+                                              icon: Icon(Icons.close),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                        content: Text(
+                                            "Are you sure you want to delete this page?"),
+                                        actions: [
+                                          FlatButton(
+                                            child: Text("Cancel"),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          FlatButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  widget.lists.removeAt(index);
+                                                });
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text("Delete",
+                                                  style: TextStyle(
+                                                      color: Colors.red)))
+                                        ],
+                                      );
+                                    });
                               });
-                            });
-                          },),
-                        )
-                    )
+                            },
+                          ),
+                        ))
                   ]),
                   onTapDown: (pointer) {
                     listStates[index].onTapDown(pointer);
