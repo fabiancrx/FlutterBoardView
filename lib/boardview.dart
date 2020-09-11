@@ -25,6 +25,10 @@ abstract class BoardPage {
   List<Widget> get widgets;
 }
 
+typedef OnListDropped(int oldIndex, int newIndex);
+typedef OnItemDropped(
+    int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex);
+
 class BoardView extends StatefulWidget {
   /// [BoardView] will automatically re-order these for you. Use
   /// [onListsChanged] to detect when this happens. Note:
@@ -40,6 +44,9 @@ class BoardView extends StatefulWidget {
   /// Called whenever [BoardView] modifies [lists]
   final VoidCallback onListsChanged;
 
+  final OnListDropped onListDropped;
+  final OnItemDropped onItemDropped;
+
   /// See [DynamicPageScrollPhysics]
   final OnAttemptDrag onAttemptDrag;
 
@@ -51,6 +58,8 @@ class BoardView extends StatefulWidget {
       @required this.controller,
       @required this.lists,
       @required this.canDrag,
+      @required this.onListDropped,
+      @required this.onItemDropped,
       this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
@@ -121,6 +130,9 @@ class BoardViewState extends State<BoardView>
   /// If a user is allowed to intercept a page animation.
   bool allowPageAnimationInterception = true;
 
+  int startListIndex;
+  int startItemIndex;
+
   @override
   void initState() {
     super.initState();
@@ -181,7 +193,8 @@ class BoardViewState extends State<BoardView>
         if (listStates[page].boardListController != null &&
             listStates[page].boardListController.hasClients) {
           listStates[page].boardListController.animateTo(
-              listStates[page].boardListController.position.maxScrollExtent + 1000,
+              listStates[page].boardListController.position.maxScrollExtent +
+                  1000,
               duration: duration,
               curve: curve);
         }
@@ -410,6 +423,7 @@ class BoardViewState extends State<BoardView>
                   if (!widget.canDrag) return;
 
                   setState(() {
+                    startListIndex = listIndex;
                     draggedListIndex = listIndex;
                     draggedItemIndex = null;
                     draggedItem = boardList;
@@ -431,6 +445,8 @@ class BoardViewState extends State<BoardView>
                   if (!widget.canDrag) return;
 
                   setState(() {
+                    startListIndex = index;
+                    startItemIndex = itemIndex;
                     draggedItemIndex = itemIndex;
                     draggedListIndex = index;
                     draggedItem = boardItem;
@@ -559,8 +575,19 @@ class BoardViewState extends State<BoardView>
             },
             onPointerUp: (opu) {
               setState(() {
-                if(draggedListIndex != null) {
-                  listStates[draggedListIndex].boardListController.position.hold(() {});
+                if (draggedListIndex != null) {
+                  listStates[draggedListIndex]
+                      .boardListController
+                      .position
+                      .hold(() {});
+                }
+
+                if (draggedListIndex != null && draggedItemIndex == null) {
+                  widget.onListDropped(startListIndex, draggedListIndex);
+                } else if (draggedListIndex != null &&
+                    draggedItemIndex != null) {
+                  widget.onItemDropped(startListIndex, draggedListIndex,
+                      startItemIndex, draggedItemIndex);
                 }
 
                 horizontalDragTimer?.cancel();
@@ -571,6 +598,8 @@ class BoardViewState extends State<BoardView>
                 dy = null;
                 draggedItemIndex = null;
                 draggedListIndex = null;
+                startListIndex = null;
+                startItemIndex = null;
                 horizontalDragLocked = true;
                 draggedItemWidth = null;
               });
