@@ -8,6 +8,8 @@ class BoardViewController {
 
   BoardViewState state;
 
+  BoardViewMode get mode => state.boardViewMode;
+
   void animateTo(int index,
       {int durationMs = 300,
       curve: Curves.ease,

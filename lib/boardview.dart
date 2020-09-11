@@ -423,9 +423,59 @@ class BoardViewState extends State<BoardView>
                 },
               );
 
-              if(boardViewMode == BoardViewMode.pages) {
+              if (boardViewMode == BoardViewMode.pages) {
                 var list = GestureDetector(
-                  child: AbsorbPointer(child: boardList),
+                  child: Stack(children: [
+                    AbsorbPointer(child: boardList),
+                    Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          margin: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color.fromRGBO(0, 0, 0, 0.7)
+                          ),
+                          child: IconButton(icon: Icon(Icons.delete), color: Colors.red, iconSize: 30, padding: EdgeInsets.all(0), onPressed: () async {
+                            setState(() {
+                              showDialog(context: context, builder: (context) {
+                                return AlertDialog(
+                                  titlePadding: EdgeInsets.only(top: 16, left: 16, right: 8),
+                                  contentPadding: EdgeInsets.all(16),
+                                  title: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Are you sure?"),
+                                      IconButton(icon: Icon(Icons.close), onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },)
+                                    ],
+                                  ),
+                                  content: Text("Are you sure you want to delete this page?"),
+                                  actions: [
+                                    FlatButton(
+                                      child: Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    FlatButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            widget.lists.removeAt(index);
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text("Delete", style: TextStyle(color: Colors.red))
+                                    )
+                                  ],
+                                );
+                              });
+                            });
+                          },),
+                        )
+                    )
+                  ]),
                   onTapDown: (pointer) {
                     listStates[index].onTapDown(pointer);
                   },
@@ -434,7 +484,7 @@ class BoardViewState extends State<BoardView>
                   },
                 );
 
-                if(draggedListIndex == index && draggedItemIndex == null) {
+                if (draggedListIndex == index && draggedItemIndex == null) {
                   return Opacity(opacity: 0, child: list);
                 } else {
                   return list;
