@@ -43,7 +43,7 @@ class BoardList extends StatefulWidget {
   }
 }
 
-class BoardListState extends State<BoardList> {
+class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController;
 
@@ -100,11 +100,12 @@ class BoardListState extends State<BoardList> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     if (widget.boardView.listStates.length > widget.index) {
       widget.boardView.listStates.removeAt(widget.index);
     }
     widget.boardView.listStates.insert(widget.index, this);
-
 
     var list = NotificationListener(
         onNotification: (notification) {
@@ -118,6 +119,7 @@ class BoardListState extends State<BoardList> {
           shrinkWrap: true,
           controller: boardListController,
           itemCount: widget.page.widgets.length,
+          addAutomaticKeepAlives: true,
           itemBuilder: (ctx, index) {
             var item = BoardItem(
                 key: widget.page.widgets[index].key,
@@ -165,4 +167,7 @@ class BoardListState extends State<BoardList> {
   void onLongPress() {
     widget.onListDrag(widget, widget.index);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

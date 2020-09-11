@@ -559,6 +559,10 @@ class BoardViewState extends State<BoardView>
             },
             onPointerUp: (opu) {
               setState(() {
+                if(draggedListIndex != null) {
+                  listStates[draggedListIndex].boardListController.position.hold(() {});
+                }
+
                 horizontalDragTimer?.cancel();
                 draggedItem = null;
                 draggedInitX = null;

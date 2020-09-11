@@ -26,7 +26,7 @@ class BoardItem extends StatefulWidget {
   }
 }
 
-class BoardItemState extends State<BoardItem> {
+class BoardItemState extends State<BoardItem> with AutomaticKeepAliveClientMixin<BoardItem> {
   double get top {
     RenderBox box = context.findRenderObject();
     return box.localToGlobal(Offset.zero).dy;
@@ -43,6 +43,8 @@ class BoardItemState extends State<BoardItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     if (widget.boardList.itemStates.length > widget.index) {
       widget.boardList.itemStates.removeAt(widget.index);
     }
@@ -73,5 +75,10 @@ class BoardItemState extends State<BoardItem> {
       },
       child: widget.item,
     );
+  }
+
+  @override
+  bool get wantKeepAlive {
+    return true;
   }
 }
