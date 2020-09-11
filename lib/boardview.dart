@@ -12,6 +12,8 @@ import 'package:flutter/widgets.dart';
 import 'boardview_controller.dart';
 import 'boardview_page_controller.dart';
 
+final PageStorageKey mykey = new PageStorageKey("testkey");
+
 enum BoardViewMode {
   single,
   pages,
@@ -367,6 +369,7 @@ class BoardViewState extends State<BoardView>
               var boardList = BoardList(
                 key: ValueKey(widget.lists[index]),
                 items: widget.lists[index],
+                initialScrollOffset: index < listStates.length ? listStates[index].scrollOffset : 0,
                 boardView: this,
                 boardViewMode: boardViewMode,
                 index: index,

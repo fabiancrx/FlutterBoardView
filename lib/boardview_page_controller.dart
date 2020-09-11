@@ -93,8 +93,10 @@ class DynamicPageController extends PageController {
     try {
       super.attach(position);
     } catch (e) {
-      print(e);
-      print("caught error!");
+      // Ignore, this is a hack because super.super needs to get
+      // called, but the parent has some code that isn't compatible,
+      // which is mirrored below using type PagePosition instead
+      // of the private _PagePosition
     } finally {
       final PagePosition pagePosition = position as PagePosition;
       pagePosition.viewportFraction = viewportFraction;

@@ -23,6 +23,8 @@ class BoardList extends StatefulWidget {
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
 
+  final double initialScrollOffset ;
+
   const BoardList(
       {Key key,
       this.header,
@@ -33,6 +35,7 @@ class BoardList extends StatefulWidget {
       this.boardView,
       this.index,
       this.boardViewMode,
+      this.initialScrollOffset = 0,
       @required this.onPreListDrag,
       @required this.onListDrag,
       @required this.onPreItemDrag,
@@ -43,13 +46,19 @@ class BoardList extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return BoardListState();
+    return BoardListState(this.initialScrollOffset);
   }
 }
 
 class BoardListState extends State<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
-  ScrollController boardListController = new ScrollController();
+  ScrollController boardListController;
+
+  double scrollOffset = 0;
+
+  BoardListState(double initialScrollOffset)
+      : boardListController =
+            ScrollController(initialScrollOffset: initialScrollOffset), scrollOffset = initialScrollOffset;
 
   double get left {
     if (context == null) {
@@ -102,30 +111,39 @@ class BoardListState extends State<BoardList> {
 
     if (widget.items != null) {
       listWidgets.add(Flexible(
-          child: new ListView.builder(
+          child: NotificationListener(
+            onNotification: (notification) {
+              if (notification is ScrollNotification) {
+                scrollOffset = notification.metrics.pixels;
+              }
+
+              return false;
+            },
+            child: new ListView.builder(
         shrinkWrap: true,
         controller: boardListController,
         itemCount: widget.items.length,
         itemBuilder: (ctx, index) {
-          var item = BoardItem(
-              key: widget.items[index].key,
-              boardList: this,
-              item: widget.items[index],
-              index: index,
-              onPreItemDrag: widget.onPreItemDrag,
-              onItemDrag: widget.onItemDrag);
+            var item = BoardItem(
+                key: widget.items[index].key,
+                boardList: this,
+                item: widget.items[index],
+                index: index,
+                onPreItemDrag: widget.onPreItemDrag,
+                onItemDrag: widget.onItemDrag);
 
-          if (widget.boardView.draggedItemIndex == index &&
-              widget.boardView.draggedListIndex == widget.index) {
-            return Opacity(
-              opacity: 0,
-              child: item,
-            );
-          } else {
-            return item;
-          }
+            if (widget.boardView.draggedItemIndex == index &&
+                widget.boardView.draggedListIndex == widget.index) {
+              return Opacity(
+                opacity: 0,
+                child: item,
+              );
+            } else {
+              return item;
+            }
         },
-      )));
+      ),
+          )));
     }
 
     if (widget.boardView.listStates.length > widget.index) {
