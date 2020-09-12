@@ -153,6 +153,8 @@ class BoardViewState extends State<BoardView>
     modeAnimationController = AnimationController(
         duration: const Duration(milliseconds: 150), vsync: this);
 
+    // If changing this, don't forget to change the SmoothPageIndicator
+    // positioning as well
     modeAnimation = Tween<double>(begin: 1, end: 0.85).animate(
         new CurvedAnimation(
             parent: modeAnimationController, curve: Curves.linear))
