@@ -525,7 +525,6 @@ class BoardViewState extends State<BoardView>
         draggedItem != null) {
       stackWidgets.add(Positioned(
         width: draggedItemWidth,
-        height: draggedItemHeight,
         left: (dx - localDragOffset.dx) + draggedInitX,
         top: (dy - localDragOffset.dy) + draggedInitY,
         child: Opacity(opacity: .7, child: draggedItem),
