@@ -21,8 +21,11 @@ class BoardList extends StatefulWidget {
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
 
+  final Function(String) onTitleChanged;
   final VoidCallback onDeletePressed;
   final VoidCallback onLockPressed;
+
+  final String title;
 
   final int index;
 
@@ -34,6 +37,8 @@ class BoardList extends StatefulWidget {
       this.boardView,
       this.index,
       this.boardViewMode,
+      @required this.onTitleChanged,
+      @required this.title,
       @required this.onDeletePressed,
       @required this.onLockPressed,
       @required this.onPreListDrag,
@@ -53,6 +58,8 @@ class BoardListState extends State<BoardList>
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController;
 
+  TextEditingController headerEditingController;
+
   @override
   void initState() {
     super.initState();
@@ -60,11 +67,14 @@ class BoardListState extends State<BoardList>
     boardListController = ScrollController(
         initialScrollOffset: widget.page.scrollPosition,
         keepScrollOffset: false);
+
+    headerEditingController = TextEditingController(text: widget.title);
   }
 
   @override
   void dispose() {
     boardListController.dispose();
+    headerEditingController.dispose();
     super.dispose();
   }
 
@@ -160,6 +170,10 @@ class BoardListState extends State<BoardList>
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: TextField(
+                          onChanged: (val) {
+                            widget.onTitleChanged(val);
+                          },
+                          controller: headerEditingController,
                           decoration: InputDecoration(
                               contentPadding: EdgeInsets.only(
                                   left: 8, right: 8, top: 0, bottom: 0),

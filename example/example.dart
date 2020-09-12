@@ -20,6 +20,9 @@ class MyPage implements BoardPage {
   int id;
 
   MyPage(this.id, this.scrollPosition, this._widgets);
+
+  @override
+  String name;
 }
 
 class _BoardViewExampleState extends State<BoardViewExample> {
@@ -38,7 +41,9 @@ class _BoardViewExampleState extends State<BoardViewExample> {
       lists: _listData,
       onItemDropped: (int oldListIndex, int newListIndex, int oldItemIndex,
           int newItemIndex) {},
-      onListDropped: (int oldIndex, int newIndex) {},
+      activeDotColor: null,
+      onLockPressed: (int listIndex) {},
+      onAttemptDelete: (int listIndex) { return null;},
     );
   }
 }

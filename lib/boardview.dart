@@ -20,7 +20,9 @@ enum BoardViewMode {
 }
 
 abstract class BoardPage {
-  int get id;
+  int id;
+
+  String name;
 
   double scrollPosition = 0;
 
@@ -426,7 +428,7 @@ class BoardViewState extends State<BoardView>
                   var deleted = await widget.onAttemptDelete(index);
 
                   setState(() {
-                    if(deleted != null) {
+                    if (deleted != null) {
                       boardViewController.jumpToPage(max(deleted - 1, 0));
                     }
                   });
@@ -476,6 +478,11 @@ class BoardViewState extends State<BoardView>
                     _handleDrag(pointer.position.dx, pointer.position.dy);
                   }
                 },
+                onTitleChanged: (String val) {
+                  setState(() {
+                    widget.lists[index].name = val;
+                  });
+                }, title: widget.lists[index].name,
               );
 
               if (boardViewMode == BoardViewMode.pages) {
@@ -518,7 +525,9 @@ class BoardViewState extends State<BoardView>
       ));
     }
 
-    if (widget.lists.length > 1 && (!boardViewController.hasClients || (boardViewController.page.toInt() < widget.lists.length)))
+    if (widget.lists.length > 1 &&
+        (!boardViewController.hasClients ||
+            (boardViewController.page.toInt() < widget.lists.length)))
       stackWidgets.add(Positioned(
         // will be 0.85 in shortened mode,
         bottom: -45 * (1 - ((modeAnimation.value - 0.85) / .15)),
@@ -556,8 +565,7 @@ class BoardViewState extends State<BoardView>
                       .hold(() {});
                 }
 
-                if (draggedListIndex != null &&
-                    draggedItemIndex != null) {
+                if (draggedListIndex != null && draggedItemIndex != null) {
                   widget.onItemDropped(startListIndex, draggedListIndex,
                       startItemIndex, draggedItemIndex);
                 }
