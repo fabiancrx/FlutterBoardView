@@ -43,7 +43,10 @@ class _BoardViewExampleState extends State<BoardViewExample> {
           int newItemIndex) {},
       activeDotColor: null,
       onLockPressed: (int listIndex) {},
-      onAttemptDelete: (int listIndex) { return null;},
+      onAttemptDelete: (int listIndex) {
+        return null;
+      },
+      onListDropped: (int oldListIndex, int newListIndex) {},
     );
   }
 }

@@ -31,6 +31,9 @@ abstract class BoardPage {
 
 typedef OnItemDropped(
     int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex);
+typedef OnListDropped(
+    int oldListIndex, int newListIndex
+    );
 typedef Future<int> OnAttemptDelete(int listIndex);
 typedef OnLockPressed(int listIndex);
 
@@ -50,6 +53,7 @@ class BoardView extends StatefulWidget {
   final VoidCallback onListsChanged;
 
   final OnItemDropped onItemDropped;
+  final OnListDropped onListDropped;
   final OnAttemptDelete onAttemptDelete;
   final OnLockPressed onLockPressed;
 
@@ -67,6 +71,7 @@ class BoardView extends StatefulWidget {
       @required this.lists,
       @required this.canDrag,
       @required this.onItemDropped,
+      @required this.onListDropped,
       @required this.onAttemptDelete,
       @required this.onLockPressed,
       @required this.activeDotColor,
@@ -567,7 +572,9 @@ class BoardViewState extends State<BoardView>
                       .hold(() {});
                 }
 
-                if (draggedListIndex != null && draggedItemIndex != null) {
+                if (draggedListIndex != null && draggedItemIndex == null) {
+                  widget.onListDropped(startListIndex, draggedListIndex);
+                } else if (draggedListIndex != null && draggedItemIndex != null) {
                   widget.onItemDropped(startListIndex, draggedListIndex,
                       startItemIndex, draggedItemIndex);
                 }
