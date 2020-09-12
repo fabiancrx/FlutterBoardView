@@ -2,6 +2,7 @@ library boardview;
 
 import 'dart:async';
 import 'dart:core';
+import 'dart:math';
 
 import 'package:boardview/board_item.dart';
 import 'package:boardview/board_list.dart';
@@ -29,7 +30,7 @@ abstract class BoardPage {
 typedef OnListDropped(int oldIndex, int newIndex);
 typedef OnItemDropped(
     int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex);
-typedef OnAttemptDelete(int listIndex);
+typedef Future<int> OnAttemptDelete(int listIndex);
 typedef OnLockPressed(int listIndex);
 
 class BoardView extends StatefulWidget {
@@ -142,7 +143,7 @@ class BoardViewState extends State<BoardView>
 
   int startListIndex;
   int startItemIndex;
-
+  
   @override
   void initState() {
     super.initState();
@@ -487,8 +488,14 @@ class BoardViewState extends State<BoardView>
                                 color: Colors.red,
                                 iconSize: 30,
                                 padding: EdgeInsets.all(0),
-                                onPressed: () {
-                                  widget.onAttemptDelete(index);
+                                onPressed: () async {
+                                  var deleted = await widget.onAttemptDelete(index);
+
+                                  setState(() {
+                                    if(deleted != null) {
+                                      boardViewController.jumpToPage(max(deleted - 1, 0));
+                                    }
+                                  });
                                 },
                               ),
                             ),
@@ -546,7 +553,7 @@ class BoardViewState extends State<BoardView>
       ));
     }
 
-    if (widget.lists.length > 1)
+    if (widget.lists.length > 1 && (!boardViewController.hasClients || (boardViewController.page.toInt() < widget.lists.length)))
       stackWidgets.add(Positioned(
         // will be 0.85 in shortened mode,
         bottom: -45 * (1 - ((modeAnimation.value - 0.85) / .15)),
