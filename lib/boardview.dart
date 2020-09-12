@@ -28,6 +28,8 @@ abstract class BoardPage {
 typedef OnListDropped(int oldIndex, int newIndex);
 typedef OnItemDropped(
     int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex);
+typedef OnAttemptDelete(int listIndex);
+typedef OnLockPressed(int listIndex);
 
 class BoardView extends StatefulWidget {
   /// [BoardView] will automatically re-order these for you. Use
@@ -46,6 +48,8 @@ class BoardView extends StatefulWidget {
 
   final OnListDropped onListDropped;
   final OnItemDropped onItemDropped;
+  final OnAttemptDelete onAttemptDelete;
+  final OnLockPressed onLockPressed;
 
   /// See [DynamicPageScrollPhysics]
   final OnAttemptDrag onAttemptDrag;
@@ -60,6 +64,8 @@ class BoardView extends StatefulWidget {
       @required this.canDrag,
       @required this.onListDropped,
       @required this.onItemDropped,
+      @required this.onAttemptDelete,
+      @required this.onLockPressed,
       this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
@@ -465,63 +471,38 @@ class BoardViewState extends State<BoardView>
                     Positioned(
                         top: 8,
                         right: 8,
-                        child: Container(
-                          margin: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color.fromRGBO(0, 0, 0, 0.7)),
-                          child: IconButton(
-                            icon: Icon(Icons.delete),
-                            color: Colors.red,
-                            iconSize: 30,
-                            padding: EdgeInsets.all(0),
-                            onPressed: () async {
-                              setState(() {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        titlePadding: EdgeInsets.only(
-                                            top: 16, left: 16, right: 8),
-                                        contentPadding: EdgeInsets.all(16),
-                                        title: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text("Are you sure?"),
-                                            IconButton(
-                                              icon: Icon(Icons.close),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            )
-                                          ],
-                                        ),
-                                        content: Text(
-                                            "Are you sure you want to delete this page?"),
-                                        actions: [
-                                          FlatButton(
-                                            child: Text("Cancel"),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                          FlatButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  widget.lists.removeAt(index);
-                                                });
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text("Delete",
-                                                  style: TextStyle(
-                                                      color: Colors.red)))
-                                        ],
-                                      );
-                                    });
-                              });
-                            },
-                          ),
+                        child: Column(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color.fromRGBO(0, 0, 0, 0.7)),
+                              child: IconButton(
+                                icon: Icon(Icons.delete),
+                                color: Colors.red,
+                                iconSize: 30,
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  widget.onAttemptDelete(index);
+                                },
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color.fromRGBO(0, 0, 0, 0.7)),
+                              child: IconButton(
+                                icon: Icon(Icons.lock),
+                                iconSize: 30,
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  widget.onLockPressed(index);
+                                },
+                              ),
+                            ),
+                          ],
                         ))
                   ]),
                   onTapDown: (pointer) {
