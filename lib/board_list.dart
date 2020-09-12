@@ -238,13 +238,13 @@ class BoardListState extends State<BoardList>
     Offset pos = object.localToGlobal(Offset.zero);
 
     Rect rect = Rect.fromLTWH(
-        pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
+        pos.dx, pos.dy, object.size.width * 0.9, object.size.height);
 
     // If the touch position would occur outside the right side (after width
     // adjustment), adjust initial's by the difference
     if (pointer.globalPosition.dx > rect.right) {
       double correction =
-          pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
+          pointer.globalPosition.dx - (rect.left + object.size.width * 0.8);
       rect = Rect.fromLTWH(
           rect.left + correction, rect.top, rect.width, rect.height);
     }
