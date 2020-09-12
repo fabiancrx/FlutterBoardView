@@ -8,6 +8,7 @@ import 'package:boardview/board_list.dart';
 import 'package:boardview/boardview_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'boardview_controller.dart';
 import 'boardview_page_controller.dart';
@@ -51,6 +52,8 @@ class BoardView extends StatefulWidget {
   final OnAttemptDelete onAttemptDelete;
   final OnLockPressed onLockPressed;
 
+  final Color activeDotColor;
+
   /// See [DynamicPageScrollPhysics]
   final OnAttemptDrag onAttemptDrag;
 
@@ -66,6 +69,7 @@ class BoardView extends StatefulWidget {
       @required this.onItemDropped,
       @required this.onAttemptDelete,
       @required this.onLockPressed,
+      @required this.activeDotColor,
       this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
@@ -542,6 +546,23 @@ class BoardViewState extends State<BoardView>
       ));
     }
 
+    if (widget.lists.length > 1)
+      stackWidgets.add(Positioned(
+        // will be 0.85 in shortened mode,
+        bottom: -45 * (1 - ((modeAnimation.value - 0.85) / .15)),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 16, left: 8, right: 8),
+          child: SmoothPageIndicator(
+              controller: boardViewController,
+              count: widget.lists.length,
+              effect: WormEffect(
+                  activeDotColor: widget.activeDotColor,
+                  dotWidth: 10,
+                  dotHeight: 10,
+                  dotColor: Color.fromRGBO(0, 0, 0, 0.4))),
+        ),
+      ));
+
     return Container(
         child: Listener(
             onPointerMove: (opm) {
@@ -585,7 +606,8 @@ class BoardViewState extends State<BoardView>
                 draggedItemWidth = null;
               });
             },
-            child: new Stack(
+            child: Stack(
+              alignment: Alignment.bottomCenter,
               clipBehavior: Clip.none,
               children: stackWidgets,
             )));
