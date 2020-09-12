@@ -21,6 +21,9 @@ class BoardList extends StatefulWidget {
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
 
+  final VoidCallback onDeletePressed;
+  final VoidCallback onLockPressed;
+
   final int index;
 
   const BoardList(
@@ -31,6 +34,8 @@ class BoardList extends StatefulWidget {
       this.boardView,
       this.index,
       this.boardViewMode,
+      @required this.onDeletePressed,
+      @required this.onLockPressed,
       @required this.onPreListDrag,
       @required this.onListDrag,
       @required this.onPreItemDrag,
@@ -43,7 +48,8 @@ class BoardList extends StatefulWidget {
   }
 }
 
-class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin<BoardList> {
+class BoardListState extends State<BoardList>
+    with AutomaticKeepAliveClientMixin<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController;
 
@@ -107,40 +113,108 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
     }
     widget.boardView.listStates.insert(widget.index, this);
 
+    var boardList = ListView.builder(
+      shrinkWrap: true,
+      controller: boardListController,
+      itemCount: widget.page.widgets.length,
+      addAutomaticKeepAlives: true,
+      itemBuilder: (ctx, index) {
+        var item = BoardItem(
+            key: widget.page.widgets[index].key,
+            boardList: this,
+            item: widget.page.widgets[index],
+            index: index,
+            onPreItemDrag: widget.onPreItemDrag,
+            onItemDrag: widget.onItemDrag);
+
+        if (widget.boardView.draggedItemIndex == index &&
+            widget.boardView.draggedListIndex == widget.index) {
+          return Opacity(
+            opacity: 0,
+            child: item,
+          );
+        } else {
+          return item;
+        }
+      },
+    );
+
     var list = NotificationListener(
-        onNotification: (notification) {
-          if (notification is ScrollNotification) {
-            widget.page.scrollPosition = notification.metrics.pixels;
-          }
+      onNotification: (notification) {
+        if (notification is ScrollNotification) {
+          widget.page.scrollPosition = notification.metrics.pixels;
+        }
 
-          return true;
-        },
-        child: ListView.builder(
-          shrinkWrap: true,
-          controller: boardListController,
-          itemCount: widget.page.widgets.length,
-          addAutomaticKeepAlives: true,
-          itemBuilder: (ctx, index) {
-            var item = BoardItem(
-                key: widget.page.widgets[index].key,
-                boardList: this,
-                item: widget.page.widgets[index],
-                index: index,
-                onPreItemDrag: widget.onPreItemDrag,
-                onItemDrag: widget.onItemDrag);
+        return true;
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.boardViewMode == BoardViewMode.pages)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: TextField(
+                          decoration: InputDecoration(
+                              contentPadding: EdgeInsets.only(
+                                  left: 8, right: 8, top: 0, bottom: 0),
+                              labelText: "Page name",
+                              border: OutlineInputBorder())),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromRGBO(0, 0, 0, 0.7)),
+                    child: IconButton(
+                      icon: Icon(Icons.lock),
+                      iconSize: 30,
+                      padding: EdgeInsets.all(0),
+                      onPressed: () {
+                        widget.onLockPressed();
 
-            if (widget.boardView.draggedItemIndex == index &&
-                widget.boardView.draggedListIndex == widget.index) {
-              return Opacity(
-                opacity: 0,
-                child: item,
-              );
-            } else {
-              return item;
-            }
-          },
-        ),
-      );
+                        //widget.onLockPressed(index);
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromRGBO(0, 0, 0, 0.7)),
+                    child: IconButton(
+                      icon: Icon(Icons.delete),
+                      color: Colors.red,
+                      iconSize: 30,
+                      padding: EdgeInsets.all(0),
+                      onPressed: () {
+                        widget.onDeletePressed();
+                        // var deleted = await widget.onAttemptDelete(index);
+                        //
+                        // setState(() {
+                        //   if(deleted != null) {
+                        //     boardViewController.jumpToPage(max(deleted - 1, 0));
+                        //   }
+                        // });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (widget.boardViewMode == BoardViewMode.pages)
+            Flexible(fit: FlexFit.loose, child: AbsorbPointer(child: boardList))
+          else
+            Flexible(fit: FlexFit.loose, child: boardList)
+        ],
+      ),
+    );
 
     return list;
   }

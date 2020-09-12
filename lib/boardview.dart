@@ -27,7 +27,6 @@ abstract class BoardPage {
   List<Widget> get widgets;
 }
 
-typedef OnListDropped(int oldIndex, int newIndex);
 typedef OnItemDropped(
     int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex);
 typedef Future<int> OnAttemptDelete(int listIndex);
@@ -48,7 +47,6 @@ class BoardView extends StatefulWidget {
   /// Called whenever [BoardView] modifies [lists]
   final VoidCallback onListsChanged;
 
-  final OnListDropped onListDropped;
   final OnItemDropped onItemDropped;
   final OnAttemptDelete onAttemptDelete;
   final OnLockPressed onLockPressed;
@@ -66,7 +64,6 @@ class BoardView extends StatefulWidget {
       @required this.controller,
       @required this.lists,
       @required this.canDrag,
-      @required this.onListDropped,
       @required this.onItemDropped,
       @required this.onAttemptDelete,
       @required this.onLockPressed,
@@ -143,7 +140,7 @@ class BoardViewState extends State<BoardView>
 
   int startListIndex;
   int startItemIndex;
-  
+
   @override
   void initState() {
     super.initState();
@@ -422,6 +419,18 @@ class BoardViewState extends State<BoardView>
                 boardView: this,
                 boardViewMode: boardViewMode,
                 index: index,
+                onLockPressed: () {
+                  widget.onLockPressed(index);
+                },
+                onDeletePressed: () async {
+                  var deleted = await widget.onAttemptDelete(index);
+
+                  setState(() {
+                    if(deleted != null) {
+                      boardViewController.jumpToPage(max(deleted - 1, 0));
+                    }
+                  });
+                },
                 onPreListDrag: (Rect bounds) {
                   if (!widget.canDrag) return;
 
@@ -471,51 +480,7 @@ class BoardViewState extends State<BoardView>
 
               if (boardViewMode == BoardViewMode.pages) {
                 var list = GestureDetector(
-                  child: Stack(children: [
-                    AbsorbPointer(child: boardList),
-                    Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Column(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color.fromRGBO(0, 0, 0, 0.7)),
-                              child: IconButton(
-                                icon: Icon(Icons.delete),
-                                color: Colors.red,
-                                iconSize: 30,
-                                padding: EdgeInsets.all(0),
-                                onPressed: () async {
-                                  var deleted = await widget.onAttemptDelete(index);
-
-                                  setState(() {
-                                    if(deleted != null) {
-                                      boardViewController.jumpToPage(max(deleted - 1, 0));
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color.fromRGBO(0, 0, 0, 0.7)),
-                              child: IconButton(
-                                icon: Icon(Icons.lock),
-                                iconSize: 30,
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {
-                                  widget.onLockPressed(index);
-                                },
-                              ),
-                            ),
-                          ],
-                        ))
-                  ]),
+                  child: boardList,
                   onTapDown: (pointer) {
                     listStates[index].onTapDown(pointer);
                   },
@@ -591,9 +556,7 @@ class BoardViewState extends State<BoardView>
                       .hold(() {});
                 }
 
-                if (draggedListIndex != null && draggedItemIndex == null) {
-                  widget.onListDropped(startListIndex, draggedListIndex);
-                } else if (draggedListIndex != null &&
+                if (draggedListIndex != null &&
                     draggedItemIndex != null) {
                   widget.onItemDropped(startListIndex, draggedListIndex,
                       startItemIndex, draggedItemIndex);
