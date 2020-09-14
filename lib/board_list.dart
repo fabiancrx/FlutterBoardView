@@ -129,23 +129,23 @@ class BoardListState extends State<BoardList>
       itemCount: widget.page.widgets.length,
       addAutomaticKeepAlives: true,
       itemBuilder: (ctx, index) {
-        var item = BoardItem(
-            key: widget.page.widgets[index].key,
-            boardList: this,
-            item: widget.page.widgets[index],
-            index: index,
-            onPreItemDrag: widget.onPreItemDrag,
-            onItemDrag: widget.onItemDrag);
+    var item = BoardItem(
+        key: widget.page.widgets[index].key,
+        boardList: this,
+        item: widget.page.widgets[index],
+        index: index,
+        onPreItemDrag: widget.onPreItemDrag,
+        onItemDrag: widget.onItemDrag);
 
-        if (widget.boardView.draggedItemIndex == index &&
-            widget.boardView.draggedListIndex == widget.index) {
-          return Opacity(
-            opacity: 0,
-            child: item,
-          );
-        } else {
-          return item;
-        }
+    if (widget.boardView.draggedItemIndex == index &&
+        widget.boardView.draggedListIndex == widget.index) {
+      return Opacity(
+        opacity: 0,
+        child: item,
+      );
+    } else {
+      return item;
+    }
       },
     );
 
