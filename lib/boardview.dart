@@ -468,7 +468,7 @@ class BoardViewState extends State<BoardView>
                   draggedInitX = bounds.left;
                   draggedInitY = bounds.top;
                   draggedItemWidth = bounds.width;
-                  draggedItemHeight = bounds.height;
+                  draggedItemHeight = null;
                 },
                 onItemDrag: (BoardItem boardItem, int itemIndex) {
                   if (!widget.canDrag) return;
@@ -520,11 +520,11 @@ class BoardViewState extends State<BoardView>
     // In-hand dragging item
     if (dx != null &&
         dy != null &&
-        draggedItemHeight != null &&
         draggedItemWidth != null &&
         draggedItem != null) {
       stackWidgets.add(Positioned(
         width: draggedItemWidth,
+        height: draggedItemHeight,
         left: (dx - localDragOffset.dx) + draggedInitX,
         top: (dy - localDragOffset.dy) + draggedInitY,
         child: Opacity(opacity: .7, child: draggedItem),
@@ -607,7 +607,6 @@ class BoardViewState extends State<BoardView>
   void _handleDrag(double dx, double dy) {
     if (draggedInitX == null ||
         draggedInitY == null ||
-        draggedItemHeight == null ||
         draggedItemWidth == null) {
       return;
     }
