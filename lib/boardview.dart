@@ -57,6 +57,7 @@ class BoardView extends StatefulWidget {
   final OnItemDropped onItemDropped;
   final OnListDropped onListDropped;
   final OnAttemptDelete onAttemptDelete;
+  final ValueChanged<int> onPageChanged;
   final OnLockPressed onLockPressed;
 
   final Color activeDotColor;
@@ -77,6 +78,7 @@ class BoardView extends StatefulWidget {
       @required this.onAttemptDelete,
       @required this.onLockPressed,
       @required this.activeDotColor,
+      @required this.onPageChanged,
       this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
@@ -423,6 +425,7 @@ class BoardViewState extends State<BoardView>
                   })
                 : NeverScrollableScrollPhysics(),
             pageSnapping: false,
+            onPageChanged: widget.onPageChanged,
             itemBuilder: (context, index) {
               var boardList = BoardList(
                 key: ValueKey(widget.lists[index].id),

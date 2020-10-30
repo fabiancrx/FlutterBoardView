@@ -175,60 +175,29 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
         position.maxScrollExtent < value) // hit bottom edge
       return value - position.maxScrollExtent;
 
-    // Figure out what page we are on and which one we are going to.
-    // This does not account for viewportFraction, but could be added if
-    // needed by multiplying viewportDimension by viewportFraction.
-    // 'fromPage' is determined by whichever page touches the horizontal
-    // midpoint of the display area
-    int fromPage = (position.pixels + position.viewportDimension / 2) ~/
-        position.viewportDimension;
-    int toPage = value < position.pixels ? fromPage - 1 : fromPage + 1;
-    int maxPage =
-        (position.maxScrollExtent / position.viewportDimension).ceil();
+    bool left = value < position.pixels;
 
-    /*
-     * If fromPage and toPage are equal, no point in checking for lock,
-     * just return default behavior.
-     */
-    if (fromPage == toPage.clamp(0, maxPage)) {
-      return parent.applyBoundaryConditions(position, value);
+    int fromPage, toPage;
+
+    if(left) {
+      fromPage = position.pixels ~/ position.viewportDimension;
+      toPage = value ~/ position.viewportDimension;
+    } else {
+      fromPage = (position.pixels + position.viewportDimension) ~/ position.viewportDimension;
+      toPage = (value + position.viewportDimension) ~/ position.viewportDimension;
     }
 
-    // Check with the client if this drag is allowed.
-    bool allow = onAttemptDrag(fromPage, toPage);
-
-    if (allow) {
-      return 0.0;
+    if(!onAttemptDrag(fromPage, toPage)) {
+      return value - position.pixels;
     } else {
-      // Compute the page boundary.
-      // If moving left:
-      // - pagePixels refers to the pixel value of the left-edge
-      //   which corresponds to the page
-      // If moving right:
-      // - pagePixels refers to the pixel value of the right-edge
-      //    which correspond to the page
-      double pagePixels = toPage * position.viewportDimension +
-          (toPage < fromPage
-              ? position.viewportDimension
-              : -position.viewportDimension);
-
-      // This is a small correction needed due to how "fromPage" is computed.
-      // Because "fromPage" is computed based off whichever page
-      // intersects the horizontal midpoint, the "fromPage" and "toPage"
-      // variables will change immediately when this half point changes,
-      // which can get the page stuck. This code makes sure that the
-      // nearest page can always be reached.
-      if (value < pagePixels) {
-        return value - position.pixels;
-      } else {
-        return 0.0;
-      }
+      return super.applyBoundaryConditions(position, value);
     }
   }
 
   @override
   Simulation createBallisticSimulation(
       ScrollMetrics position, double velocity) {
+
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
