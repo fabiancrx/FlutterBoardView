@@ -11,8 +11,7 @@ class BoardViewController {
   BoardViewMode get mode => state == null ? BoardViewMode.single : state.boardViewMode;
 
   int get page {
-    if (state.boardViewController != null &&
-        state.boardViewController.hasClients) {
+    if (state.boardViewController != null && state.boardViewController.hasClients) {
       return state.boardViewController.page.toInt();
     } else {
       return 0;
@@ -24,18 +23,14 @@ class BoardViewController {
   }
 
   void animateToPage(int index,
-      {int durationMs = 300,
-      curve: Curves.ease,
-      allowAnimationInterception = false}) {
-    if (state.boardViewController != null &&
-        state.boardViewController.hasClients) {
+      {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) {
+    if (state.boardViewController != null && state.boardViewController.hasClients) {
       state.animateTo(false, index, Duration(milliseconds: durationMs), curve);
     }
   }
 
   Future<void> toggleMode() async {
-    if (state.boardViewController != null &&
-        state.boardViewController.hasClients) {
+    if (state.boardViewController != null && state.boardViewController.hasClients) {
       await state.toggleMode();
     }
   }

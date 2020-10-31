@@ -53,8 +53,7 @@ class BoardList extends StatefulWidget {
   }
 }
 
-class BoardListState extends State<BoardList>
-    with AutomaticKeepAliveClientMixin<BoardList> {
+class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin<BoardList> {
   List<BoardItemState> itemStates = List<BoardItemState>();
   ScrollController boardListController;
 
@@ -64,9 +63,8 @@ class BoardListState extends State<BoardList>
   void initState() {
     super.initState();
 
-    boardListController = ScrollController(
-        initialScrollOffset: widget.page.scrollPosition,
-        keepScrollOffset: false);
+    boardListController =
+        ScrollController(initialScrollOffset: widget.page.scrollPosition, keepScrollOffset: false);
 
     headerEditingController = TextEditingController(text: widget.title);
   }
@@ -178,17 +176,15 @@ class BoardListState extends State<BoardList>
                           },
                           controller: headerEditingController,
                           decoration: InputDecoration(
-                              contentPadding: EdgeInsets.only(
-                                  left: 8, right: 8, top: 0, bottom: 0),
+                              contentPadding: EdgeInsets.only(left: 8, right: 8, top: 0, bottom: 0),
                               labelText: "Page name",
                               border: OutlineInputBorder())),
                     ),
                   ),
                   Container(
                     margin: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromRGBO(0, 0, 0, 0.7)),
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(0, 0, 0, 0.7)),
                     child: IconButton(
                       icon: Icon(Icons.lock),
                       iconSize: 30,
@@ -202,9 +198,8 @@ class BoardListState extends State<BoardList>
                   ),
                   Container(
                     margin: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromRGBO(0, 0, 0, 0.7)),
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(0, 0, 0, 0.7)),
                     child: IconButton(
                       icon: Icon(Icons.delete),
                       color: Colors.red,
@@ -240,16 +235,13 @@ class BoardListState extends State<BoardList>
     RenderBox object = context.findRenderObject();
     Offset pos = object.localToGlobal(Offset.zero);
 
-    Rect rect = Rect.fromLTWH(
-        pos.dx, pos.dy, object.size.width * 0.9, object.size.height);
+    Rect rect = Rect.fromLTWH(pos.dx, pos.dy, object.size.width * 0.9, object.size.height);
 
     // If the touch position would occur outside the right side (after width
     // adjustment), adjust initial's by the difference
     if (pointer.globalPosition.dx > rect.right) {
-      double correction =
-          pointer.globalPosition.dx - (rect.left + object.size.width * 0.8);
-      rect = Rect.fromLTWH(
-          rect.left + correction, rect.top, rect.width, rect.height);
+      double correction = pointer.globalPosition.dx - (rect.left + object.size.width * 0.8);
+      rect = Rect.fromLTWH(rect.left + correction, rect.top, rect.width, rect.height);
     }
 
     widget.onPreListDrag(rect);

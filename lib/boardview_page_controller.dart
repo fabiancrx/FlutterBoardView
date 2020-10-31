@@ -24,8 +24,7 @@ class DynamicPageController extends PageController {
 
   double get viewportFraction => _viewportFraction;
 
-  DynamicPageController({int initialPage = 0})
-      : super(initialPage: initialPage);
+  DynamicPageController({int initialPage = 0}) : super(initialPage: initialPage);
 
   void updateViewportFraction(double fraction) {
     _viewportFraction = fraction;
@@ -76,8 +75,8 @@ class DynamicPageController extends PageController {
   }
 
   @override
-  ScrollPosition createScrollPosition(ScrollPhysics physics,
-      ScrollContext context, ScrollPosition oldPosition) {
+  ScrollPosition createScrollPosition(
+      ScrollPhysics physics, ScrollContext context, ScrollPosition oldPosition) {
     return PagePosition(
       physics: physics,
       context: context,
@@ -110,14 +109,12 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   final OnAttemptDrag onAttemptDrag;
 
   /// Creates physics for a [PageView].
-  const DynamicPageScrollPhysics(
-      {ScrollPhysics parent, @required this.onAttemptDrag})
+  const DynamicPageScrollPhysics({ScrollPhysics parent, @required this.onAttemptDrag})
       : super(parent: parent);
 
   @override
   DynamicPageScrollPhysics applyTo(ScrollPhysics ancestor) {
-    return DynamicPageScrollPhysics(
-        parent: buildParent(ancestor), onAttemptDrag: onAttemptDrag);
+    return DynamicPageScrollPhysics(parent: buildParent(ancestor), onAttemptDrag: onAttemptDrag);
   }
 
   double _getPage(ScrollMetrics position) {
@@ -130,8 +127,7 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
     return page * position.viewportDimension;
   }
 
-  double _getTargetPixels(
-      ScrollMetrics position, Tolerance tolerance, double velocity) {
+  double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
     double page = _getPage(position);
     if (velocity < -tolerance.velocity)
       page -= 0.5;
@@ -144,8 +140,7 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   double applyBoundaryConditions(ScrollMetrics position, double value) {
     assert(() {
       if (value == position.pixels) {
-        throw FlutterError(
-            '$runtimeType.applyBoundaryConditions() was called redundantly.\n'
+        throw FlutterError('$runtimeType.applyBoundaryConditions() was called redundantly.\n'
             'The proposed new position, $value, is exactly equal to the current position of the '
             'given ${position.runtimeType}, ${position.pixels}.\n'
             'The applyBoundaryConditions method should only be called when the value is '
@@ -162,11 +157,9 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
      * Handle the hard boundaries (min and max extents)
      * (identical to ClampingScrollPhysics)
      */
-    if (value < position.pixels &&
-        position.pixels <= position.minScrollExtent) // under-scroll
+    if (value < position.pixels && position.pixels <= position.minScrollExtent) // under-scroll
       return value - position.pixels;
-    if (position.maxScrollExtent <= position.pixels &&
-        position.pixels < value) // over-scroll
+    if (position.maxScrollExtent <= position.pixels && position.pixels < value) // over-scroll
       return value - position.pixels;
     if (value < position.minScrollExtent &&
         position.minScrollExtent < position.pixels) // hit top edge
@@ -180,21 +173,22 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
     int fromPage, toPage;
     double overScroll = 0;
 
-    if(left) {
+    if (left) {
       fromPage = position.pixels.ceil() ~/ position.viewportDimension;
       toPage = value ~/ position.viewportDimension;
 
       overScroll = value - fromPage * position.viewportDimension;
       overScroll = overScroll.clamp(value - position.pixels, 0.0);
     } else {
-      fromPage = (position.pixels + position.viewportDimension).floor() ~/ position.viewportDimension;
+      fromPage =
+          (position.pixels + position.viewportDimension).floor() ~/ position.viewportDimension;
       toPage = (value + position.viewportDimension) ~/ position.viewportDimension;
 
       overScroll = value - fromPage * position.viewportDimension;
       overScroll = overScroll.clamp(0.0, value - position.pixels);
     }
 
-    if(fromPage != toPage && !onAttemptDrag(fromPage, toPage)) {
+    if (fromPage != toPage && !onAttemptDrag(fromPage, toPage)) {
       return overScroll;
     } else {
       return super.applyBoundaryConditions(position, value);
@@ -202,9 +196,7 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   }
 
   @override
-  Simulation createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
-
+  Simulation createBallisticSimulation(ScrollMetrics position, double velocity) {
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
@@ -222,8 +214,7 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
   bool get allowImplicitScrolling => false;
 }
 
-class PagePosition extends ScrollPositionWithSingleContext
-    implements PageMetrics {
+class PagePosition extends ScrollPositionWithSingleContext implements PageMetrics {
   PagePosition({
     ScrollPhysics physics,
     ScrollContext context,
@@ -268,8 +259,7 @@ class PagePosition extends ScrollPositionWithSingleContext
   //
   // The value is 0 if viewportFraction is less than or equal to 1, larger than 0
   // otherwise.
-  double get _initialPageOffset =>
-      math.max(0, viewportDimension * (viewportFraction - 1) / 2);
+  double get _initialPageOffset => math.max(0, viewportDimension * (viewportFraction - 1) / 2);
 
   double getPageFromPixels(double pixels, double viewportDimension) {
     final double actual = math.max(0.0, pixels - _initialPageOffset) /
@@ -294,21 +284,20 @@ class PagePosition extends ScrollPositionWithSingleContext
     return pixels == null
         ? null
         : getPageFromPixels(
-            pixels.clamp(minScrollExtent, maxScrollExtent) as double,
-            viewportDimension);
+            pixels.clamp(minScrollExtent, maxScrollExtent) as double, viewportDimension);
   }
 
   @override
   void saveScrollOffset() {
-    PageStorage.of(context.storageContext)?.writeState(
-        context.storageContext, getPageFromPixels(pixels, viewportDimension));
+    PageStorage.of(context.storageContext)
+        ?.writeState(context.storageContext, getPageFromPixels(pixels, viewportDimension));
   }
 
   @override
   void restoreScrollOffset() {
     if (pixels == null) {
-      final double value = PageStorage.of(context.storageContext)
-          ?.readState(context.storageContext) as double;
+      final double value =
+          PageStorage.of(context.storageContext)?.readState(context.storageContext) as double;
       if (value != null) _pageToUseOnStartup = value;
     }
   }

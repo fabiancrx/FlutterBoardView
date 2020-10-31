@@ -39,8 +39,7 @@ class _BoardViewExampleState extends State<BoardViewExample> {
       canDrag: true,
       controller: boardViewController,
       lists: _listData,
-      onItemDropped: (int oldListIndex, int newListIndex, int oldItemIndex,
-          int newItemIndex) {},
+      onItemDropped: (int oldListIndex, int newListIndex, int oldItemIndex, int newItemIndex) {},
       activeDotColor: null,
       onLockPressed: (int listIndex) {},
       onAttemptDelete: (int listIndex) {

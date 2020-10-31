@@ -55,16 +55,13 @@ class BoardItemState extends State<BoardItem> with AutomaticKeepAliveClientMixin
         RenderBox object = context.findRenderObject();
         Offset pos = object.localToGlobal(Offset.zero);
 
-        Rect rect = Rect.fromLTWH(
-            pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
+        Rect rect = Rect.fromLTWH(pos.dx, pos.dy, object.size.width * 0.8, object.size.height);
 
         // If the touch position would occur outside the right side (after width
         // adjustment), adjust initial's by the difference
         if (pointer.globalPosition.dx > rect.right) {
-          double correction =
-              pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
-          rect = Rect.fromLTWH(
-              rect.left + correction, rect.top, rect.width, rect.height);
+          double correction = pointer.globalPosition.dx - (rect.left + object.size.width * 0.7);
+          rect = Rect.fromLTWH(rect.left + correction, rect.top, rect.width, rect.height);
         }
 
         widget.onPreItemDrag(rect);
