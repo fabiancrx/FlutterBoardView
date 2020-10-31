@@ -187,8 +187,8 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
       toPage = (value + position.viewportDimension) ~/ position.viewportDimension;
     }
 
-    if(!onAttemptDrag(fromPage, toPage)) {
-      return value - position.pixels;
+    if(fromPage != toPage && !onAttemptDrag(fromPage, toPage)) {
+      return value - fromPage * position.viewportDimension;
     } else {
       return super.applyBoundaryConditions(position, value);
     }
