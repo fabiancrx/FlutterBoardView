@@ -35,6 +35,7 @@ typedef OnItemDropped(int oldListIndex, int newListIndex, int oldItemIndex, int 
 typedef OnListDropped(int oldListIndex, int newListIndex);
 typedef Future<int> OnAttemptDelete(int listIndex);
 typedef OnLockPressed(int listIndex);
+typedef OnPageTitleChanged(int pageIndex, String value);
 
 class BoardView extends StatefulWidget {
   /// [BoardView] will automatically re-order these for you. Use
@@ -56,6 +57,7 @@ class BoardView extends StatefulWidget {
   final OnAttemptDelete onAttemptDelete;
   final ValueChanged<int> onPageChanged;
   final OnLockPressed onLockPressed;
+  final OnPageTitleChanged onPageTitleChanged;
 
   final Color activeDotColor;
 
@@ -76,6 +78,7 @@ class BoardView extends StatefulWidget {
       @required this.onLockPressed,
       @required this.activeDotColor,
       @required this.onPageChanged,
+      @required this.onPageTitleChanged,
       this.onAttemptDrag,
       this.initialPage = 0,
       this.onListsChanged})
@@ -465,6 +468,8 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
                   setState(() {
                     widget.lists[index].name = val;
                   });
+
+                  widget.onPageTitleChanged(index, val);
                 },
                 title: widget.lists[index].name,
               );
