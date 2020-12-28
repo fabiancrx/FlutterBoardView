@@ -9,8 +9,6 @@ typedef void OnStartDragList(int listIndex);
 
 class BoardList extends StatefulWidget {
   final BoardPage page;
-  final Color backgroundColor;
-  final Color headerBackgroundColor;
   final BoardViewState boardView;
   final BoardViewMode boardViewMode;
 
@@ -32,8 +30,6 @@ class BoardList extends StatefulWidget {
   const BoardList(
       {Key key,
       this.page,
-      this.backgroundColor,
-      this.headerBackgroundColor,
       this.boardView,
       this.index,
       this.boardViewMode,
@@ -54,7 +50,7 @@ class BoardList extends StatefulWidget {
 }
 
 class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin<BoardList> {
-  List<BoardItemState> itemStates = List<BoardItemState>();
+  List<BoardItemState> itemStates;
   ScrollController boardListController;
 
   TextEditingController headerEditingController;
@@ -63,10 +59,18 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
   void initState() {
     super.initState();
 
+    itemStates = List.filled(widget.page.widgets.length, null, growable: true);
+
     boardListController =
         ScrollController(initialScrollOffset: widget.page.scrollPosition, keepScrollOffset: false);
 
     headerEditingController = TextEditingController(text: widget.title);
+
+    if(widget.boardView.listStates.length <= widget.index) {
+      widget.boardView.listStates.add(null);
+    }
+
+    widget.boardView.listStates[widget.index] = this;
   }
 
   @override
@@ -115,11 +119,6 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    if (widget.boardView.listStates.length > widget.index) {
-      widget.boardView.listStates.removeAt(widget.index);
-    }
-    widget.boardView.listStates.insert(widget.index, this);
 
     var boardList = ListView.builder(
       padding: widget.boardViewMode == BoardViewMode.single

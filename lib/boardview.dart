@@ -96,7 +96,7 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
   AnimationController modeAnimationController;
 
   // Keeps track of BoardList states so items can be inserted between lists
-  List<BoardListState> listStates = List<BoardListState>();
+  List<BoardListState> listStates;
 
   /// The widget the user is currently dragging
   Widget draggedItem;
@@ -156,6 +156,8 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
     if (widget.controller != null) {
       widget.controller.state = this;
     }
+
+    listStates = List.filled(widget.lists.length, null, growable: true);
 
     modeAnimationController =
         AnimationController(duration: const Duration(milliseconds: 150), vsync: this);
@@ -415,6 +417,7 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
 
                   setState(() {
                     if (deleted != null) {
+                      listStates.removeAt(index);
                       boardViewController.jumpToPage(max(deleted - 1, 0));
                     }
                   });
