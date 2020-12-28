@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 
 typedef OnAttemptDrag(int from, int to);
 
+// - pixels null? https://github.com/flutter/flutter/issues/66250
+
 class DynamicPageController extends PageController {
   double _viewportFraction = 1;
 
