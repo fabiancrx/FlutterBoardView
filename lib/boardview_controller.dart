@@ -18,6 +18,10 @@ class BoardViewController {
     }
   }
 
+  void notifyItemDeleted(int listIndex, int itemIndex) {
+    state.listStates[listIndex].itemStates.removeAt(itemIndex);
+  }
+
   void animateToBottom(int page, {int durationMs = 600, curve: Curves.linear}) {
     state.animateToBottom(page, Duration(milliseconds: durationMs), curve);
   }

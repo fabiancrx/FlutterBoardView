@@ -42,15 +42,19 @@ class BoardItemState extends State<BoardItem> with AutomaticKeepAliveClientMixin
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    if(widget.boardList.itemStates.length <= widget.index) {
+      widget.boardList.itemStates.add(null);
+    }
+
+    widget.boardList.itemStates[widget.index] = this;
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    // Todo - copied from original library. This is really bad, I don't know why it works,
-    // but without it drag and drop breaks. A problem for when there's more time.
-    if (widget.boardList.itemStates.length > widget.index) {
-      widget.boardList.itemStates.removeAt(widget.index);
-    }
-    widget.boardList.itemStates.insert(widget.index, this);
 
     return GestureDetector(
       onTapDown: (pointer) {
