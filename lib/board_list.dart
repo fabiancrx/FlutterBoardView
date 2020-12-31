@@ -18,6 +18,7 @@ class BoardList extends StatefulWidget {
   // These just pass up events from children
   final Function(Rect bounds) onPreItemDrag;
   final Function(BoardItem, int itemIndex) onItemDrag;
+  final Function onScrollChange;
 
   final Function(String) onTitleChanged;
   final VoidCallback onDeletePressed;
@@ -33,6 +34,7 @@ class BoardList extends StatefulWidget {
       this.boardView,
       this.index,
       this.boardViewMode,
+      @required this.onScrollChange,
       @required this.onTitleChanged,
       @required this.title,
       @required this.onDeletePressed,
@@ -153,6 +155,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
       onNotification: (notification) {
         if (notification is ScrollNotification) {
           widget.page.scrollPosition = notification.metrics.pixels;
+          widget.onScrollChange();
         }
 
         return true;

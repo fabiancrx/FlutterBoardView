@@ -409,6 +409,9 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
                 boardView: this,
                 boardViewMode: boardViewMode,
                 index: index,
+                onScrollChange: () {
+                  _handleItemReorder(dx, dy);
+                },
                 onLockPressed: () {
                   widget.onLockPressed(index);
                 },
