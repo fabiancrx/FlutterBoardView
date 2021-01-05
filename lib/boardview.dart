@@ -67,11 +67,15 @@ class BoardView extends StatefulWidget {
   /// PageView initial page
   final int initialPage;
 
+  /// Should page indicators be drawn at the bottom?
+  final bool showPageIndicator;
+
   BoardView(
       {Key key,
       @required this.controller,
       @required this.lists,
       @required this.canDrag,
+      @required this.showPageIndicator,
       @required this.onItemDropped,
       @required this.onListDropped,
       @required this.onAttemptDelete,
@@ -518,7 +522,8 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
 
     if (widget.lists.length > 1 &&
         (!boardViewController.hasClients ||
-            (boardViewController.page.toInt() < widget.lists.length)))
+            (boardViewController.page.toInt() < widget.lists.length)) &&
+        widget.showPageIndicator)
       stackWidgets.add(Positioned(
         // will be 0.85 in shortened mode,
         bottom: -45 * (1 - ((modeAnimation.value - 0.85) / .15)),
