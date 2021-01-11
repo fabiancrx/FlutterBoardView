@@ -29,6 +29,13 @@ class BoardViewController {
     }
   }
 
+  Future<void> animateToPageAsync(int index,
+      {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) async {
+    if (state.boardViewController != null && state.boardViewController.hasClients) {
+      await state.animateTo(false, index, Duration(milliseconds: durationMs), curve);
+    }
+  }
+
   void animateToNextPage(
       {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) {
     animateToPage(page + 1,

@@ -123,6 +123,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
     super.build(context);
 
     var boardList = ListView.builder(
+      key: ValueKey(99 + widget.index),
       padding: widget.boardViewMode == BoardViewMode.single
           ? const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 48)
           : null,
@@ -173,6 +174,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: TextField(
+                          key: Key("Title${widget.index}"),
                           onChanged: (val) {
                             widget.onTitleChanged(val);
                           },
@@ -188,6 +190,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
                     decoration:
                         BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(0, 0, 0, 0.7)),
                     child: IconButton(
+                      key: Key("Lock${widget.index}"),
                       icon: Icon(Icons.lock),
                       iconSize: 30,
                       padding: EdgeInsets.all(0),
@@ -203,6 +206,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
                     decoration:
                         BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(0, 0, 0, 0.7)),
                     child: IconButton(
+                      key: Key("Delete${widget.index}"),
                       icon: Icon(Icons.delete),
                       color: Colors.red,
                       iconSize: 30,
