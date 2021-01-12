@@ -29,6 +29,11 @@ class BoardViewController {
     }
   }
 
+  void animateToPageRespectingLocks(int index, {int durationMs = 300, curve: Curves.ease}) {
+    state.boardViewController
+        .animateToPage(index, duration: Duration(milliseconds: durationMs), curve: curve);
+  }
+
   Future<void> animateToPageAsync(int index,
       {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) async {
     if (state.boardViewController != null && state.boardViewController.hasClients) {

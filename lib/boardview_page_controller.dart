@@ -182,15 +182,14 @@ class DynamicPageScrollPhysics extends ScrollPhysics {
       overScroll = value - fromPage * position.viewportDimension;
       overScroll = overScroll.clamp(value - position.pixels, 0.0);
     } else {
-      fromPage =
-          (position.pixels + position.viewportDimension).floor() ~/ position.viewportDimension;
+      fromPage = position.pixels.ceil() ~/ position.viewportDimension;
       toPage = (value + position.viewportDimension) ~/ position.viewportDimension;
 
       overScroll = value - fromPage * position.viewportDimension;
       overScroll = overScroll.clamp(0.0, value - position.pixels);
     }
 
-    if (fromPage != toPage && !onAttemptDrag(fromPage, toPage)) {
+    if (fromPage != toPage && !onAttemptDrag(fromPage, toPage) && true) {
       return overScroll;
     } else {
       return super.applyBoundaryConditions(position, value);
