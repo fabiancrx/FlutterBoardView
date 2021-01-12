@@ -46,6 +46,9 @@ class _BoardViewExampleState extends State<BoardViewExample> {
         return null;
       },
       onListDropped: (int oldListIndex, int newListIndex) {},
+      showPageIndicator: true,
+      onPageChanged: (int value) {},
+      onPageTitleChanged: (int pageIndex, String value) {},
     );
   }
 }

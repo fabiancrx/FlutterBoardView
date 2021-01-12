@@ -18,7 +18,7 @@ class BoardViewController {
     }
   }
 
-  void animateToBottom(int page, {int durationMs = 600, curve: Curves.linear}) {
+  void animateToBottom(int page, {int durationMs = 350, curve: Curves.linear}) {
     state.animateToBottom(page, Duration(milliseconds: durationMs), curve);
   }
 
@@ -29,15 +29,11 @@ class BoardViewController {
     }
   }
 
-  void animateToPageRespectingLocks(int index, {int durationMs = 300, curve: Curves.ease}) {
-    state.boardViewController
-        .animateToPage(index, duration: Duration(milliseconds: durationMs), curve: curve);
-  }
-
-  Future<void> animateToPageAsync(int index,
-      {int durationMs = 300, curve: Curves.ease, allowAnimationInterception = false}) async {
+  Future<void> animateToPageRespectingLocks(int index,
+      {int durationMs = 300, curve: Curves.ease}) async {
     if (state.boardViewController != null && state.boardViewController.hasClients) {
-      await state.animateTo(false, index, Duration(milliseconds: durationMs), curve);
+      await state.boardViewController
+          .animateToPage(index, duration: Duration(milliseconds: durationMs), curve: curve);
     }
   }
 

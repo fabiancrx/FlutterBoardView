@@ -210,12 +210,13 @@ class BoardViewState extends State<BoardView> with SingleTickerProviderStateMixi
 
   /// Animates to the bottom of the specified page
   Future<void> animateToBottom(int page, Duration duration, Curve curve) async {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    // Need to make sure scroll position can recalculate
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (page < listStates.length) {
         if (listStates[page].boardListController != null &&
             listStates[page].boardListController.hasClients) {
           listStates[page].boardListController.animateTo(
-              listStates[page].boardListController.position.maxScrollExtent + 1000,
+              listStates[page].boardListController.position.maxScrollExtent,
               duration: duration,
               curve: curve);
         }

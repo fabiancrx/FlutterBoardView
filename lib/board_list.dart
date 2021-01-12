@@ -68,7 +68,7 @@ class BoardListState extends State<BoardList> with AutomaticKeepAliveClientMixin
 
     headerEditingController = TextEditingController(text: widget.title);
 
-    if(widget.boardView.listStates.length <= widget.index) {
+    if (widget.boardView.listStates.length <= widget.index) {
       widget.boardView.listStates.add(null);
     }
 
