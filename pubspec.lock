@@ -89,10 +89,12 @@ packages:
   smooth_page_indicator:
     dependency: "direct main"
     description:
-      name: smooth_page_indicator
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.2.0"
+      path: "."
+      ref: HEAD
+      resolved-ref: "32956a413ac711d9cf2f9512fc38ad48e1e63d42"
+      url: "https://github.com/Nolence/smooth_page_indicator.git"
+    source: git
+    version: "0.3.0-nullsafety.0"
   source_span:
     dependency: transitive
     description:
